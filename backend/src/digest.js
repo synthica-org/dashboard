@@ -60,9 +60,10 @@ function buildDigestHtml(name, { activity = [], listings = [], programs = [], ev
 // Sends a personalized digest to every approved researcher with an email.
 // `activityFor(userId)` returns that member's recent followed-activity.
 export async function sendWeeklyDigests(data, activityFor = () => []) {
-  const { recipients, ...sections } = data;
+  const { recipients = [], ...sections } = data || {};
   let sent = 0;
   for (const r of recipients) {
+    if (!r || !r.email) continue; // skip recipients with no email on file
     const personal = { ...sections, activity: activityFor(r.id) || [] };
     const res = await sendEmail({
       to: r.email,

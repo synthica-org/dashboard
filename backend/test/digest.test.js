@@ -36,4 +36,24 @@ describe('weekly digest — followed activity', () => {
     expect(out.recipients).toBeGreaterThan(0);
     expect(out.sent).toBe(out.recipients); // skipped counts as handled when no provider
   });
+
+  it('tolerates missing/empty data without throwing (no-op)', async () => {
+    expect(await sendWeeklyDigests(undefined)).toEqual({ recipients: 0, sent: 0 });
+    expect(await sendWeeklyDigests({})).toEqual({ recipients: 0, sent: 0 });
+    expect(await sendWeeklyDigests({ recipients: [] })).toEqual({ recipients: 0, sent: 0 });
+  });
+
+  it('skips recipients with no email on file', async () => {
+    const out = await sendWeeklyDigests({
+      recipients: [{ id: 'u1', name: 'A', email: 'a@example.com' }, { id: 'u2', name: 'B', email: '' }, null],
+      listings: [], programs: [], events: [],
+    });
+    expect(out.recipients).toBe(3); // total considered
+    expect(out.sent).toBe(1); // only the one with an email is handled
+  });
+
+  it('the digest text falls back gracefully when there is nothing to report', () => {
+    const txt = buildDigestText('Ada', { activity: [], programs: [], listings: [], events: [] });
+    expect(txt).toMatch(/A quiet week/);
+  });
 });

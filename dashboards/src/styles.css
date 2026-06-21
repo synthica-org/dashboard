@@ -775,6 +775,11 @@ textarea {
 .bell-title { font-size: 0.85rem; font-weight: 600; color: var(--heading); }
 .bell-body { font-size: 0.78rem; color: var(--body); margin-top: 0.15rem; }
 .bell-time { font-size: 0.68rem; color: var(--body-alt); margin-top: 0.2rem; }
+.bell-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.bell-status { font-size: 0.66rem; font-weight: 600; color: var(--gold, #d4860a); white-space: nowrap; }
+.bell-empty { text-align: center; }
+.bell-empty-icon { font-size: 1.6rem; opacity: 0.5; margin-bottom: 0.35rem; }
+.bell-empty-sub { font-size: 0.72rem; color: var(--body-alt); margin-top: 0.3rem; }
 @media (max-width: 600px) { .cmdk-trigger .cmdk-hint { display: none; } .bell-menu { width: 280px; } }
 
 /* ---------- Onboarding wizard (Duolingo-style) ---------- */
