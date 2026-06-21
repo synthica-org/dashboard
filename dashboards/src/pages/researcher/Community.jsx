@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Card, Button, Pfp, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/toast.jsx';
+import { useRealtime } from '../../realtime.js';
 import SafetyMenu from '../../components/SafetyMenu.jsx';
 import { imageSrc } from '../../files.js';
 import { safeHref } from '../../url.js';
@@ -23,11 +24,18 @@ const ago = (iso) => {
 export default function Community() {
   const [tab, setTab] = useState('feed');
   const [posts, setPosts] = useState(null);
+
   const load = useCallback(() => api.posts().then(setPosts).catch(() => setPosts([])), []);
   useEffect(() => { load(); }, [load]);
 
-  // Local optimistic refresh: the post APIs return the updated post.
-  const patch = (updated) => setPosts((cur) => cur.map((p) => (p.id === updated.id ? updated : p)));
+  // Likes and comments on your posts arrive as notifications over SSE — refresh
+  // the feed so counts stay current without a manual reload. (The backend does
+  // not broadcast brand-new posts, so we don't fake a live insert for those.)
+  useRealtime('notification', useCallback((d) => { if (d?.type === 'post') load(); }, [load]));
+
+  // The post APIs return the full updated post — patch it in place.
+  const patch = (updated) => setPosts((cur) => (cur || []).map((p) => (p.id === updated.id ? updated : p)));
+  const remove = (id) => setPosts((cur) => (cur || []).filter((p) => p.id !== id));
 
   return (
     <div>
@@ -39,19 +47,20 @@ export default function Community() {
         <button className={`seg-btn ${tab === 'news' ? 'active' : ''}`} onClick={() => setTab('news')}>News &amp; announcements</button>
       </div>
 
-      {tab === 'news' ? <News embedded /> : !posts ? (
+      {tab === 'news' ? (
+        <News embedded />
+      ) : !posts ? (
         <div className="page-loading">Loading…</div>
       ) : (
         <>
-      <Composer onPosted={(p) => setPosts((cur) => [p, ...cur])} />
-
-      {posts.length === 0 ? (
-        <EmptyState>No posts yet — be the first to share something.</EmptyState>
-      ) : (
-        <div className="stack" style={{ gap: '1rem' }}>
-          {posts.map((p) => <PostCard key={p.id} post={p} onChange={patch} onDeleted={(id) => setPosts((cur) => cur.filter((x) => x.id !== id))} />)}
-        </div>
-      )}
+          <Composer onPosted={(p) => setPosts((cur) => [p, ...(cur || [])])} />
+          {posts.length === 0 ? (
+            <EmptyState>No posts yet — be the first to share something with the community.</EmptyState>
+          ) : (
+            <div className="stack" style={{ gap: '1rem' }}>
+              {posts.map((p) => <PostCard key={p.id} post={p} onChange={patch} onDeleted={remove} />)}
+            </div>
+          )}
         </>
       )}
     </div>
@@ -61,18 +70,36 @@ export default function Community() {
 function Composer({ onPosted }) {
   const { user } = useAuth();
   const toast = useToast();
+  const fileRef = useRef(null);
   const [text, setText] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [showLink, setShowLink] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  const empty = !text.trim() && !linkUrl.trim() && !imageUrl.trim();
+
+  const pickImage = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-picking the same file
+    if (!file) return;
+    setUploading(true);
+    api.upload(file, 'image')
+      .then((res) => setImageUrl(res.url))
+      .catch((err) => toast.error(err.message))
+      .finally(() => setUploading(false));
+  };
+
+  const reset = () => { setText(''); setLinkUrl(''); setImageUrl(''); setShowLink(false); };
+
   const submit = async () => {
-    if (!text.trim() && !linkUrl.trim()) return;
+    if (empty) return;
     setBusy(true);
     try {
-      const post = await api.createPost({ text, linkUrl });
+      const post = await api.createPost({ text, linkUrl, imageUrl });
       onPosted(post);
-      setText(''); setLinkUrl(''); setShowLink(false);
+      reset();
     } catch (e) { toast.error(e.message); } finally { setBusy(false); }
   };
 
@@ -80,7 +107,7 @@ function Composer({ onPosted }) {
     <Card style={{ marginBottom: '1.25rem' }}>
       <div className="row" style={{ alignItems: 'flex-start' }}>
         <Pfp name={user?.name} url={imageSrc(user?.avatarUrl)} />
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -88,10 +115,35 @@ function Composer({ onPosted }) {
             rows={2}
             style={{ resize: 'vertical' }}
           />
-          {showLink && <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://… (optional link)" style={{ marginTop: '0.4rem' }} />}
-          <div className="row" style={{ justifyContent: 'space-between', marginTop: '0.5rem' }}>
-            <Button variant="ghost" className="btn-sm" onClick={() => setShowLink((v) => !v)}>🔗 {showLink ? 'Remove link' : 'Add link'}</Button>
-            <Button className="btn-sm" disabled={busy || (!text.trim() && !linkUrl.trim())} onClick={submit}>{busy ? 'Posting…' : 'Post'}</Button>
+          {showLink && (
+            <input
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://… (optional link)"
+              style={{ marginTop: '0.4rem' }}
+            />
+          )}
+          {imageUrl && (
+            <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+              <img src={imageSrc(imageUrl)} alt="" style={{ width: '100%', borderRadius: 12, maxHeight: 300, objectFit: 'cover' }} />
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setImageUrl('')}
+                title="Remove image"
+                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)', color: '#fff' }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          <div className="row" style={{ justifyContent: 'space-between', marginTop: '0.5rem', gap: '0.5rem' }}>
+            <div className="row" style={{ gap: '0.15rem' }}>
+              <Button variant="ghost" className="btn-sm" onClick={() => setShowLink((v) => !v)}>🔗 {showLink ? 'Remove link' : 'Add link'}</Button>
+              <Button variant="ghost" className="btn-sm" disabled={uploading} onClick={() => fileRef.current?.click()}>🖼 {uploading ? 'Uploading…' : 'Add image'}</Button>
+              <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickImage} />
+            </div>
+            <Button className="btn-sm" disabled={busy || uploading || empty} onClick={submit}>{busy ? 'Posting…' : 'Post'}</Button>
           </div>
         </div>
       </div>
@@ -109,9 +161,14 @@ function PostCard({ post, onChange, onDeleted }) {
   const like = () => api.likePost(post.id).then(onChange).catch((e) => toast.error(e.message));
   const sendComment = () => {
     if (!comment.trim()) return;
-    api.commentPost(post.id, comment).then((p) => { onChange(p); setComment(''); setShowComments(true); }).catch((e) => toast.error(e.message));
+    api.commentPost(post.id, comment)
+      .then((p) => { onChange(p); setComment(''); setShowComments(true); })
+      .catch((e) => toast.error(e.message));
   };
-  const del = () => api.deletePost(post.id).then(() => onDeleted(post.id)).catch((e) => toast.error(e.message));
+  const del = () => {
+    if (!window.confirm('Delete this post?')) return;
+    api.deletePost(post.id).then(() => onDeleted(post.id)).catch((e) => toast.error(e.message));
+  };
 
   const link = safeHref(post.linkUrl);
 
@@ -144,25 +201,27 @@ function PostCard({ post, onChange, onDeleted }) {
       {link && <a href={link} target="_blank" rel="noreferrer" className="info-block" style={{ display: 'block', marginTop: '0.5rem', wordBreak: 'break-all' }}>🔗 {post.linkUrl}</a>}
 
       <div className="row" style={{ marginTop: '0.7rem', gap: '1rem' }}>
-        <button className="btn btn-ghost btn-sm" onClick={like}>{post.likedByMe ? '❤️' : '🤍'} {post.likeCount > 0 ? post.likeCount : ''} Like</button>
+        <button className="btn btn-ghost btn-sm" onClick={like} aria-pressed={post.likedByMe}>{post.likedByMe ? '❤️' : '🤍'} {post.likeCount > 0 ? post.likeCount : ''} Like</button>
         <button className="btn btn-ghost btn-sm" onClick={() => setShowComments((v) => !v)}>💬 {post.commentCount > 0 ? post.commentCount : ''} Comment</button>
       </div>
 
       {showComments && (
         <div style={{ marginTop: '0.6rem' }}>
-          <div className="stack" style={{ marginBottom: '0.5rem' }}>
-            {post.comments.map((c) => (
-              <div key={c.id} className="info-block" style={{ fontSize: '0.88rem' }}>
-                <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div><Link to={`/p/${c.author.slug}`} style={{ fontWeight: 700 }}>{c.author.name}</Link> <span className="muted" style={{ fontSize: '0.72rem' }}>{ago(c.at)}</span></div>
-                  {c.author.id !== user?.id && (
-                    <SafetyMenu kind="comment" targetId={c.id} authorId={c.author.id} authorName={c.author.name} onBlocked={() => onChange({ ...post, comments: post.comments.filter((x) => x.id !== c.id) })} />
-                  )}
+          {post.comments.length > 0 && (
+            <div className="stack" style={{ marginBottom: '0.5rem' }}>
+              {post.comments.map((c) => (
+                <div key={c.id} className="info-block" style={{ fontSize: '0.88rem' }}>
+                  <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div><Link to={`/p/${c.author.slug}`} style={{ fontWeight: 700 }}>{c.author.name}</Link> <span className="muted" style={{ fontSize: '0.72rem' }}>{ago(c.at)}</span></div>
+                    {c.author.id !== user?.id && (
+                      <SafetyMenu kind="comment" targetId={c.id} authorId={c.author.id} authorName={c.author.name} onBlocked={() => onChange({ ...post, comments: post.comments.filter((x) => x.id !== c.id) })} />
+                    )}
+                  </div>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{c.text}</div>
                 </div>
-                <div>{c.text}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           <div className="row">
             <input value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Write a comment…" onKeyDown={(e) => e.key === 'Enter' && sendComment()} />
             <Button className="btn-sm" onClick={sendComment} disabled={!comment.trim()}>Send</Button>

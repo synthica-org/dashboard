@@ -28,14 +28,19 @@ export default function Messages() {
 
   if (!convos) return <div className="page-loading">Loading…</div>;
 
+  const totalUnread = convos.reduce((n, c) => n + (c.unread || 0), 0);
+
   return (
     <div>
       <h1 className="page-title">Messages</h1>
-      <p className="page-sub">Direct messages with members. Find people in the directory and start a conversation.</p>
+      <p className="page-sub">
+        Direct messages with members. Find people in the directory and start a conversation.
+        {totalUnread > 0 && <> · <strong>{totalUnread} unread</strong></>}
+      </p>
       <div className="dm-layout">
         <Card className="dm-list">
           {convos.length === 0 ? (
-            <p className="muted" style={{ padding: '0.5rem' }}>No conversations yet — message someone from their profile or the People directory.</p>
+            <EmptyState>No conversations yet — message someone from their profile or the <Link to="/researcher/people">People directory</Link>.</EmptyState>
           ) : (
             convos.map((c) => (
               <button
@@ -46,7 +51,7 @@ export default function Messages() {
                 <Pfp name={c.user.name} url={imageSrc(c.user.avatarUrl)} size="xs" />
                 <span className="dm-convo-body">
                   <span className="dm-convo-name">{c.user.name}{c.unread > 0 && <Badge tone="blue">{c.unread}</Badge>}</span>
-                  <span className="dm-convo-last">{c.mine ? 'You: ' : ''}{c.lastMessage}</span>
+                  <span className="dm-convo-last" style={c.unread > 0 ? { fontWeight: 700, color: 'var(--heading)' } : undefined}>{c.mine ? 'You: ' : ''}{c.lastMessage}</span>
                 </span>
                 <span className="dm-convo-time">{ago(c.lastAt)}</span>
               </button>
@@ -55,22 +60,31 @@ export default function Messages() {
         </Card>
 
         <Card className="dm-thread-card">
-          {userId ? <Thread userId={userId} onSent={loadConvos} /> : <EmptyState>Select a conversation to start chatting.</EmptyState>}
+          {userId ? (
+            <Thread key={userId} userId={userId} onSent={loadConvos} onRead={loadConvos} />
+          ) : (
+            <EmptyState>Select a conversation to start chatting.</EmptyState>
+          )}
         </Card>
       </div>
     </div>
   );
 }
 
-function Thread({ userId, onSent }) {
+function Thread({ userId, onSent, onRead }) {
   const [data, setData] = useState(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const endRef = useRef(null);
-
   const navigate = useNavigate();
-  const load = useCallback(() => api.thread(userId).then(setData).catch(() => setData(null)), [userId]);
+
+  // Loading the thread marks the other person's messages as read on the server,
+  // so refresh the conversation list afterwards to clear the unread badge.
+  const load = useCallback(
+    () => api.thread(userId).then((d) => { setData(d); onRead?.(); }).catch(() => setData(null)),
+    [userId, onRead],
+  );
   useEffect(() => { setData(null); load(); }, [load]);
 
   // Live: when a message arrives from the person we're chatting with, reload.
@@ -79,10 +93,11 @@ function Thread({ userId, onSent }) {
   useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }); }, [data]);
 
   const send = async () => {
-    if (!text.trim()) return;
+    const body = text.trim();
+    if (!body) return;
     setBusy(true);
     try {
-      const msg = await api.sendMessage(userId, text);
+      const msg = await api.sendMessage(userId, body);
       setData((d) => (d ? { ...d, messages: [...d.messages, msg] } : d));
       setText('');
       onSent?.();
@@ -94,9 +109,11 @@ function Thread({ userId, onSent }) {
   return (
     <div className="dm-thread">
       <div className="dm-thread-head">
-        <Pfp name={data.user.name} url={imageSrc(data.user.avatarUrl)} size="xs" />
-        <Link to={`/p/${data.user.slug}`} style={{ fontWeight: 700 }}>{data.user.name}</Link>
-        <span className="muted" style={{ fontSize: '0.78rem' }}>{data.user.role}</span>
+        <Link to={`/p/${data.user.slug}`} aria-label={`${data.user.name}'s profile`}><Pfp name={data.user.name} url={imageSrc(data.user.avatarUrl)} size="xs" /></Link>
+        <div style={{ minWidth: 0 }}>
+          <Link to={`/p/${data.user.slug}`} style={{ fontWeight: 700 }}>{data.user.name}</Link>
+          {data.user.role && <div className="muted" style={{ fontSize: '0.74rem' }}>{data.user.role}</div>}
+        </div>
         <span style={{ marginLeft: 'auto' }}>
           <SafetyMenu kind="profile" targetId={data.user.id} authorId={data.user.id} authorName={data.user.name} onBlocked={() => navigate('/researcher/messages')} />
         </span>
@@ -105,7 +122,7 @@ function Thread({ userId, onSent }) {
         {data.messages.length === 0 && <p className="muted" style={{ textAlign: 'center', marginTop: '1rem' }}>No messages yet — say hello 👋</p>}
         {data.messages.map((m) => (
           <div key={m.id} className={`dm-bubble ${m.mine ? 'mine' : ''}`}>
-            <span>{m.text}</span>
+            <span style={{ whiteSpace: 'pre-wrap' }}>{m.text}</span>
             <span className="dm-bubble-time">{ago(m.at)}</span>
           </div>
         ))}
