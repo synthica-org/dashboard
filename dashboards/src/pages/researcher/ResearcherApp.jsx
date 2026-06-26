@@ -24,7 +24,6 @@ import MyProjects from './MyProjects.jsx';
 import People from './People.jsx';
 import MyJournal from './MyJournal.jsx';
 import Community from './Community.jsx';
-import Messages from './Messages.jsx';
 import Programs from './Programs.jsx';
 import Groups from './Groups.jsx';
 import GroupDetail from './GroupDetail.jsx';
@@ -77,7 +76,6 @@ export default function ResearcherApp() {
     { to: '/researcher', label: 'Home', icon: 'home', end: true, views: ['researcher'] },
     { section: 'Community', views: ['researcher'] },
     { to: '/researcher/community', label: 'Feed', icon: 'megaphone', views: ['researcher'] },
-    { to: '/researcher/messages', label: 'Messages', icon: 'message', views: ['researcher'] },
     { to: '/researcher/people', label: 'People', icon: 'users', views: ['researcher'] },
     { to: '/researcher/mentors', label: 'Mentors', icon: 'graduation-cap', views: ['researcher'] },
     { section: 'Research', views: ['researcher'] },
@@ -125,7 +123,6 @@ export default function ResearcherApp() {
     ...(isMentor ? [
       { to: '/researcher/mentor', label: 'Mentor desk', icon: 'graduation-cap', end: true, views: ['mentor'] },
       { section: 'Mentor', views: ['mentor'] },
-      { to: '/researcher/messages', label: 'Messages', icon: 'message', views: ['mentor'] },
       { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['mentor'] },
     ] : []),
 
@@ -152,8 +149,6 @@ export default function ResearcherApp() {
 
         {/* Shared researcher pages */}
         <Route path="community" element={<Community />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="messages/:userId" element={<Messages />} />
         <Route path="projects" element={<MyProjects />} />
         <Route path="calendar" element={<Calendar />} />
         <Route path="drive" element={<Drive />} />

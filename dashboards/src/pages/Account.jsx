@@ -6,6 +6,7 @@ import { Security } from './Tools.jsx';
 import Certificates from '../components/Certificates.jsx';
 import Referrals from '../components/Referrals.jsx';
 import PrivacySafety from '../components/PrivacySafety.jsx';
+import Notifications from './Notifications.jsx';
 import { useAuth } from '../auth.jsx';
 
 // The account center — one place to manage everything tied to "you": your public
@@ -21,6 +22,7 @@ export default function Account() {
   // Tabs are gated by account kind: only researchers earn role certificates.
   const tabs = [
     ['profile', 'Profile', () => <Profile />],
+    ['notifications', 'Notifications', () => <Notifications />],
     ['tools', 'Résumé & tools', () => <Tools />],
     isResearcher && ['certs', 'Certificates', () => <Certificates />],
     ['referrals', 'Refer & invite', () => <Referrals />],

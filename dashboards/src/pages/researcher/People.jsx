@@ -112,7 +112,6 @@ function PersonCard({ p, onToggle }) {
         </div>
       )}
       <div className="row" style={{ marginTop: '0.6rem' }}>
-        <Link className="btn btn-ghost btn-sm" to={`/researcher/messages/${p.id}`}>Message</Link>
         <Button className="btn-sm" variant={p.following ? 'ghost' : 'primary'} onClick={() => onToggle(p)}>{p.following ? <span className="icon-label"><Icon name="check" size={14} /> Following</span> : 'Follow'}</Button>
       </div>
     </Card>
@@ -131,7 +130,6 @@ function ConnectionCard({ p }) {
       </div>
       <div className="row" style={{ marginTop: '0.6rem' }}>
         <Link className="btn btn-ghost btn-sm" to={`/p/${p.slug || p.id}`}>Profile</Link>
-        <Link className="btn btn-primary btn-sm" to={`/researcher/messages/${p.id}`}>Message</Link>
       </div>
     </Card>
   );

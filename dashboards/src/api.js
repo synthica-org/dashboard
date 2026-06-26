@@ -319,6 +319,8 @@ export const api = {
   getSettings: () => request('/editor/settings'),
   setWebhook: (discordWebhookUrl) => request('/editor/settings', { method: 'PUT', body: { discordWebhookUrl } }),
   testWebhook: () => request('/editor/settings/test', { method: 'POST' }),
+  // Discord DM test
+  notifyTest: () => request('/notify/test', { method: 'POST' }),
 
   // Expertise mentors (ROLE_WORKFLOWS §7)
   // Directory + booking (any researcher):

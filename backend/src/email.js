@@ -122,3 +122,165 @@ export function emailDecision({ authorEmail, authorName, title, decision }) {
     signoff: 'Thank you for contributing,',
   });
 }
+
+// ============================================================
+// Notification email templates for platform events
+// ============================================================
+
+// New reply/comment on post
+export function emailNewComment({ toEmail, toName, authorName, postTitle, postLink }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  return actionEmail({
+    to: toEmail,
+    subject: `${authorName} commented on your post`,
+    heading: 'New comment on your post',
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `<strong>${esc(authorName)}</strong> commented on your post<strong>${esc(postTitle)}</strong>`,
+    ],
+    button: { label: 'View comment', url: `${SITE}${postLink}` },
+    signoff: 'Stay engaged,',
+  });
+}
+
+// Project invitation received
+export function emailProjectInvite({ toEmail, toName, inviterName, projectTitle, projectLink }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  return actionEmail({
+    to: toEmail,
+    subject: `You've been invited to join: ${projectTitle}`,
+    heading: 'Project invitation',
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `<strong>${esc(inviterName)}</strong> invited you to join the project <strong>${esc(projectTitle)}</strong>`,
+    ],
+    button: { label: 'View project', url: `${SITE}${projectLink}` },
+    signoff: 'Happy collaborating,',
+  });
+}
+
+// Application status update
+export function emailApplicationUpdate({ toEmail, toName, programName, status, statusMessage, link }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  const statusLabel = status === 'approved' ? 'approved' : status === 'rejected' ? 'not approved' : 'updated';
+  return actionEmail({
+    to: toEmail,
+    subject: `Your application to ${programName} was ${statusLabel}`,
+    heading: `Application ${statusLabel}`,
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      statusMessage || `Your application to <strong>${esc(programName)}</strong> has been ${statusLabel}.`,
+    ],
+    button: link ? { label: 'View application', url: `${SITE}${link}` } : undefined,
+    signoff: 'Best regards,',
+  });
+}
+
+// Mentor request received
+export function emailMentorRequest({ toEmail, toName, menteeName, menteeMessage, requestLink }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  return actionEmail({
+    to: toEmail,
+    subject: `New mentorship request from ${menteeName}`,
+    heading: 'New mentorship request',
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `<strong>${esc(menteeName)}</strong> requested your mentorship.`,
+      menteeMessage ? `Message: <em>"${esc(menteeMessage)}"</em>` : '',
+    ],
+    button: { label: 'View request', url: `${SITE}${requestLink}` },
+    signoff: 'Happy mentoring,',
+  });
+}
+
+// New community announcement
+export function emailAnnouncement({ toEmail, toName, authorName, title, content, link }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  return actionEmail({
+    to: toEmail,
+    subject: `Announcement: ${title}`,
+    heading: esc(title),
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `From <strong>${esc(authorName)}</strong>:`,
+      content || '',
+    ],
+    button: link ? { label: 'Read more', url: `${SITE}${link}` } : undefined,
+    signoff: 'Stay connected,',
+  });
+}
+
+// Role/privilege granted
+export function emailRoleGranted({ toEmail, toName, roleName, roleDescription, dashboardLink }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  return actionEmail({
+    to: toEmail,
+    subject: `You've been granted: ${roleName}`,
+    heading: 'New role assigned',
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `Congratulations! You've been assigned the <strong>${esc(roleName)}</strong> role.`,
+      roleDescription || '',
+    ],
+    button: { label: 'Go to dashboard', url: `${SITE}${dashboardLink}` },
+    signoff: 'Congratulations,',
+  });
+}
+
+// Independent researcher proposal update
+export function emailProposalUpdate({ toEmail, toName, proposalTitle, status, feedback, link }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  const statusLabel = status === 'approved' ? 'approved' : status === 'rejected' ? 'not approved' : 'under review';
+  return actionEmail({
+    to: toEmail,
+    subject: `Your proposal "${proposalTitle}" was ${statusLabel}`,
+    heading: `Proposal ${statusLabel}`,
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `Your proposal <strong>${esc(proposalTitle)}</strong> has been ${statusLabel}.`,
+      feedback ? `Feedback: ${esc(feedback)}` : '',
+    ],
+    button: link ? { label: 'View proposal', url: `${SITE}${link}` } : undefined,
+    signoff: 'Best of luck,',
+  });
+}
+
+// Competition/listing update
+export function emailListingUpdate({ toEmail, toName, listingTitle, status, listingLink }) {
+  const first = String(toName || 'there').split(/\s+/)[0];
+  return actionEmail({
+    to: toEmail,
+    subject: `Update on your ${listingTitle} application`,
+    heading: 'Application update',
+    intro: `Hi ${esc(first)},`,
+    blocks: [
+      `There's an update regarding your application to <strong>${esc(listingTitle)}</strong>.`,
+    ],
+    button: { label: 'View details', url: `${SITE}${listingLink}` },
+    signoff: 'Stay tuned,',
+  });
+}
+
+// General notification helper - sends any notification type as email
+export function sendNotificationEmail({ toEmail, toName, type, data }) {
+  if (!toEmail) return { ok: false, reason: 'no email' };
+
+  const templates = {
+    comment: () => emailNewComment({ toEmail, toName, ...data }),
+    project_invite: () => emailProjectInvite({ toEmail, toName, ...data }),
+    application_update: () => emailApplicationUpdate({ toEmail, toName, ...data }),
+    mentor_request: () => emailMentorRequest({ toEmail, toName, ...data }),
+    announcement: () => emailAnnouncement({ toEmail, toName, ...data }),
+    role_granted: () => emailRoleGranted({ toEmail, toName, ...data }),
+    proposal_update: () => emailProposalUpdate({ toEmail, toName, ...data }),
+    listing_update: () => emailListingUpdate({ toEmail, toName, ...data }),
+  };
+
+  const template = templates[type];
+  if (!template) {
+    console.warn(`[email] unknown notification type: ${type}`);
+    return { ok: false, reason: 'unknown type' };
+  }
+
+  return template();
+}

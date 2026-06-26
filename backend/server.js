@@ -768,6 +768,28 @@ app.post('/api/editor/settings/test', requireAuth, editorOnly, directorOnly, wra
   res.json(result);
 }));
 
+// Send a test Discord DM to the current user
+app.post('/api/notify/test', requireAuth, wrap(async (req, res) => {
+  const user = req.user;
+  if (!user.discord) return res.status(400).json({ error: 'No Discord username set. Add it in Discord settings above.' });
+  
+  const result = await notify.sendDiscordDM({
+    discordUsername: user.discord,
+    content: '🎉 This is a test message from Synthica!\n\nYour Discord notifications are working correctly.',
+    embed: {
+      title: '✅ Discord Connected!',
+      description: 'You will now receive project notifications via DM.',
+      color: 2589,
+      footer: { text: 'Synthica Notifications' },
+    },
+  });
+  
+  if (!result.ok && !result.skipped) {
+    return res.status(400).json({ error: result.error || 'Failed to send DM' });
+  }
+  res.json({ ok: true });
+}));
+
 // --- Track 4: Researcher dashboard -----------------------------------------
 const researcherOnly = (req, res, next) => {
   if (req.user.kind !== 'researcher' && !req.user.allViewsDemo) {

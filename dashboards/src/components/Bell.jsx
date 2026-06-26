@@ -73,12 +73,30 @@ export default function Bell() {
     if (n.link) navigate(n.link);
   };
 
+  const goToSettings = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setOpen(false);
+    // Extract base path from current location (e.g., /editor, /moderator, /researcher)
+    const pathname = window.location.pathname;
+    const match = pathname.match(/^(\/editor|\/moderator|\/researcher)/);
+    const basePath = match ? match[1] : '';
+    navigate(`${basePath}/account?tab=notifications`);
+  };
+
   const label = unread > 0 ? `Notifications, ${unread} unread` : 'Notifications';
 
   return (
     <div className="bell" ref={ref}>
-      <button className="bell-btn" onClick={toggle} aria-label={label} aria-haspopup="true" aria-expanded={open}>
-        🔔
+      <button 
+        className="bell-btn" 
+        onClick={toggle} 
+        aria-label={label} 
+        aria-haspopup="true" 
+        aria-expanded={open}
+        style={{ minWidth: '32px', minHeight: '32px' }}
+      >
+        <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>🔔</span>
         {unread > 0 && <span className="bell-badge">{unread > 9 ? '9+' : unread}</span>}
       </button>
       {open && (
@@ -88,6 +106,14 @@ export default function Bell() {
             {rtStatus !== 'connected' && (
               <span className="bell-status" title="Reconnecting to live updates">• reconnecting…</span>
             )}
+            <button
+              className="bell-settings-btn"
+              onClick={goToSettings}
+              title="Notification settings"
+              aria-label="Notification settings"
+            >
+              ⚙️ Settings
+            </button>
           </div>
           {items.length === 0 ? (
             <div className="bell-empty">

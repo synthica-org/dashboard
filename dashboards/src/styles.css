@@ -978,8 +978,9 @@ textarea {
 .cmdk-foot { padding: 0.5rem 1.2rem; border-top: 1px solid var(--border); color: var(--body-alt); font-size: 0.72rem; }
 
 /* ---------- Notification bell ---------- */
-.bell { position: relative; }
-.bell-btn { position: relative; display: inline-flex; align-items: center; background: none; border: none; font-size: 1.15rem; cursor: pointer; padding: 0.2rem; }
+.bell { position: relative; display: inline-flex !important; }
+.bell-btn { position: relative; display: inline-flex !important; align-items: center; justify-content: center; background: none; border: none; font-size: 1.15rem; cursor: pointer; padding: 0.3rem; border-radius: 6px; }
+.bell-btn:hover { background: var(--surface-alt); }
 .icon-label { display: inline-flex; align-items: center; gap: 0.35rem; vertical-align: middle; }
 .ob-emoji .icon { display: block; margin: 0 auto; }
 .ob-req { color: var(--danger); font-weight: 800; margin-left: 0.15rem; }
@@ -998,6 +999,8 @@ textarea {
 .bell-time { font-size: 0.68rem; color: var(--body-alt); margin-top: 0.2rem; }
 .bell-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .bell-status { font-size: 0.66rem; font-weight: 600; color: var(--gold, #d4860a); white-space: nowrap; }
+.bell-settings-btn { background: none; border: none; font-size: 0.78rem; cursor: pointer; padding: 0.3rem 0.5rem; border-radius: 4px; opacity: 0.7; transition: opacity 0.15s, background 0.15s; text-decoration: none; color: var(--brand); display: inline-flex; align-items: center; gap: 0.25rem; }
+.bell-settings-btn:hover { opacity: 1; background: var(--surface-alt); }
 .bell-empty { text-align: center; }
 .bell-empty-icon { font-size: 1.6rem; opacity: 0.5; margin-bottom: 0.35rem; }
 .bell-empty-sub { font-size: 0.72rem; color: var(--body-alt); margin-top: 0.3rem; }
@@ -1845,109 +1848,6 @@ html[data-theme='dark'] .fm-toolbar { background: rgba(14, 22, 34, 0.9); }
 html[data-theme='dark'] .fm-path, html[data-theme='dark'] .fm-btn { background: #0e1622; }
 html[data-theme='dark'] .fm-status { background: #0e1622; }
 html[data-theme='dark'] .fm-row:hover { background: rgba(37, 137, 237, 0.14); }
-
-/* ---------- Direct messages ---------- */
-.dm-layout { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; gap: 1rem; align-items: start; }
-.dm-list { padding: 0.5rem; max-height: 70vh; overflow-y: auto; }
-.dm-convo {
-  width: 100%; display: flex; align-items: center; gap: 0.6rem; text-align: left;
-  background: transparent; border: none; border-radius: 12px; padding: 0.55rem 0.6rem; cursor: pointer;
-}
-.dm-convo:hover { background: var(--surface-alt); }
-.dm-convo.active { background: rgba(120, 180, 251, 0.16); }
-.dm-convo-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.dm-convo-name { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem; }
-.dm-convo-last { color: var(--body-alt); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dm-convo-time { color: var(--body-alt); font-size: 0.72rem; flex: none; }
-.dm-thread-card { padding: 0; display: flex; flex-direction: column; min-height: 420px; width: 100%; overflow: hidden; }
-.dm-thread { display: flex; flex-direction: column; height: 70vh; width: 100%; }
-.dm-thread-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); }
-.dm-messages { flex: 1; overflow-y: auto; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; width: 100%; box-sizing: border-box; }
-.dm-bubble {
-  width: fit-content; max-width: 75%; min-width: 60px;
-  background: var(--surface-alt); color: var(--heading);
-  border-radius: 14px 14px 14px 4px; padding: 0.5rem 0.75rem; font-size: 0.92rem;
-  display: flex; flex-direction: column; gap: 0.15rem;
-}
-.dm-bubble.mine { background: var(--sky-deep); color: #fff; border-radius: 14px 14px 4px 14px; }
-.dm-bubble-time { font-size: 0.66rem; opacity: 0.7; align-self: flex-end; }
-.dm-compose { display: flex; gap: 0.5rem; padding: 0.75rem 1.1rem; border-top: 1px solid var(--border); }
-.dm-compose-input { flex: 1; resize: none; border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem 0.75rem; font-size: 0.9rem; font-family: inherit; min-height: 40px; max-height: 120px; }
-.dm-compose-input:focus { outline: none; border-color: var(--brand); }
-
-/* Bubble content */
-.dm-bubble-content { display: flex; flex-direction: column; gap: 0.15rem; }
-.dm-bubble-text { word-break: break-word; line-height: 1.4; }
-.dm-edited-mark { font-size: 0.65rem; opacity: 0.6; margin-left: 0.25rem; }
-.dm-bubble-status { display: flex; align-items: center; gap: 0.25rem; justify-content: flex-end; margin-top: 0.15rem; }
-.dm-status-icons { display: flex; color: rgba(255,255,255,0.7); }
-.dm-bubble.mine .dm-bubble-status { color: rgba(255,255,255,0.8); }
-
-/* Bubble actions */
-.dm-bubble-actions { display: none; gap: 0.25rem; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid rgba(0,0,0,0.08); }
-.dm-bubble.mine .dm-bubble-actions { border-top-color: rgba(255,255,255,0.15); }
-.dm-bubble:hover .dm-bubble-actions { display: flex; }
-.dm-bubble-actions button { background: transparent; border: none; cursor: pointer; padding: 0.2rem 0.35rem; border-radius: 4px; color: var(--body-alt); opacity: 0.7; transition: opacity 0.15s, background 0.15s; display: flex; align-items: center; justify-content: center; }
-.dm-bubble-actions button:hover { opacity: 1; background: rgba(0,0,0,0.08); }
-.dm-bubble.mine .dm-bubble-actions button:hover { background: rgba(255,255,255,0.15); }
-
-/* Reactions */
-.dm-reactions { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
-.dm-reaction { background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 0.1rem 0.4rem; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.2rem; transition: background 0.15s; }
-.dm-reaction:hover { background: rgba(0,0,0,0.12); }
-.dm-bubble.mine .dm-reaction { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
-.dm-reaction-picker { position: absolute; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 0.35rem; display: flex; gap: 0.15rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; }
-.dm-bubble-wrap { position: relative; display: flex; flex-direction: column; }
-.dm-bubble-wrap.mine { align-items: flex-end; }
-.dm-bubble-wrap:not(.mine) { align-items: flex-start; }
-
-/* Reply preview */
-.dm-reply-preview { background: rgba(0,0,0,0.05); border-left: 2px solid var(--brand); padding: 0.25rem 0.5rem; margin-bottom: 0.25rem; border-radius: 0 4px 4px 0; font-size: 0.8rem; }
-.dm-bubble.mine .dm-reply-preview { background: rgba(255,255,255,0.1); border-left-color: rgba(255,255,255,0.5); }
-.dm-reply-sender { font-weight: 600; color: var(--brand); margin-right: 0.25rem; }
-.dm-reply-text { color: var(--body-alt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* Reply indicator */
-.dm-reply-indicator { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1.1rem; background: var(--surface-alt); border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-.dm-reply-info { display: flex; flex-direction: column; gap: 0.1rem; }
-.dm-reply-content { color: var(--body-alt); font-size: 0.8rem; }
-.dm-reply-close { background: transparent; border: none; cursor: pointer; padding: 0.25rem; color: var(--body-alt); display: flex; }
-.dm-reply-close:hover { color: var(--heading); }
-
-/* Edit form */
-.dm-edit-form { display: flex; flex-direction: column; gap: 0.5rem; }
-.dm-edit-input { border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.9rem; font-family: inherit; resize: none; min-height: 60px; }
-.dm-edit-input:focus { outline: none; border-color: var(--brand); }
-.dm-edit-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
-.dm-btn-save { background: var(--brand); color: white; border: none; border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.8rem; cursor: pointer; }
-.dm-btn-save:hover { background: var(--brand-deep); }
-.dm-btn-cancel { background: transparent; color: var(--body-alt); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.8rem; cursor: pointer; }
-.dm-btn-cancel:hover { background: var(--surface-alt); }
-
-/* Deleted / Forwarded */
-.dm-deleted-text { font-style: italic; opacity: 0.5; }
-.dm-forwarded-badge { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--body-alt); margin-bottom: 0.25rem; display: block; }
-
-/* Modal */
-.dm-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.dm-modal { background: var(--bg); border-radius: 16px; padding: 1.25rem; width: 90%; max-width: 400px; max-height: 70vh; display: flex; flex-direction: column; gap: 0.75rem; }
-.dm-modal h3 { margin: 0; font-size: 1.1rem; }
-.dm-modal-search { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; font-size: 0.9rem; }
-.dm-modal-search:focus { outline: none; border-color: var(--brand); }
-.dm-modal-list { display: flex; flex-direction: column; gap: 0.25rem; max-height: 250px; overflow-y: auto; }
-.dm-modal-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem; background: transparent; border: none; border-radius: 8px; cursor: pointer; text-align: left; width: 100%; }
-.dm-modal-item:hover { background: var(--surface-alt); }
-.dm-modal-close { background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; cursor: pointer; }
-.dm-modal-close:hover { background: var(--surface-alt); }
-
-/* Link style */
-.msg-link { color: var(--brand); text-decoration: underline; }
-.msg-link:hover { color: var(--brand-deep); }
-
-@media (max-width: 760px) {
-  .dm-layout { grid-template-columns: 1fr; }
-  .dm-list { max-height: 40vh; }
-}
 
 /* ============================================================================
    DASHBOARD UI KIT  (components/dashboard/* + new ui.jsx primitives)
