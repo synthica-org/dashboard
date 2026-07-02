@@ -11,6 +11,7 @@
 import { Resvg } from '@resvg/resvg-js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { parsePages, journalIssn } from './doi.js';
 
 const FONT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'assets', 'fonts');
 const FONTS = [path.join(FONT_DIR, 'Lato-Regular.ttf'), path.join(FONT_DIR, 'Lato-Bold.ttf')];
@@ -70,12 +71,61 @@ export function ogCardPng(pub) {
   return resvg.render().asPng();
 }
 
+// Google Scholar "Highwire Press" citation_* tags + a schema.org JSON-LD
+// ScholarlyArticle block, so a crawled share page is fully indexable.
+function scholarBlock(pub, { pdfUrl, target }) {
+  const tag = (name, content) => (content ? `<meta name="${name}" content="${esc(content)}">` : '');
+  const authors = (pub.authors || []).map((a) => a.name).filter(Boolean);
+  const pubDate = String(pub.publishedAt || '').slice(0, 10);
+  const { first, last } = parsePages(pub.pages);
+  const issn = journalIssn();
+  const tags = [
+    tag('citation_title', pub.title),
+    ...authors.map((n) => tag('citation_author', n)),
+    tag('citation_publication_date', pubDate.replace(/-/g, '/')),
+    tag('citation_journal_title', 'Synthica Journal'),
+    tag('citation_issn', issn),
+    tag('citation_volume', pub.volume),
+    tag('citation_issue', pub.issue),
+    tag('citation_firstpage', first),
+    tag('citation_lastpage', last),
+    tag('citation_pdf_url', pdfUrl),
+    tag('citation_doi', pub.doi),
+  ].filter(Boolean).join('\n');
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ScholarlyArticle',
+    headline: pub.title,
+    name: pub.title,
+    author: authors.map((n) => ({ '@type': 'Person', name: n })),
+    datePublished: pubDate,
+    isPartOf: {
+      '@type': 'PublicationIssue',
+      issueNumber: pub.issue ?? undefined,
+      isPartOf: {
+        '@type': 'PublicationVolume',
+        volumeNumber: pub.volume ?? undefined,
+        isPartOf: { '@type': 'Periodical', name: 'Synthica Journal', ...(issn ? { issn } : {}) },
+      },
+    },
+    publisher: { '@type': 'Organization', name: 'Synthica' },
+    ...(pub.abstract ? { abstract: String(pub.abstract).slice(0, 500) } : {}),
+    ...(pub.doi ? { identifier: `https://doi.org/${pub.doi}`, sameAs: `https://doi.org/${pub.doi}` } : {}),
+    license: 'https://creativecommons.org/licenses/by/4.0/',
+    url: target,
+  };
+  // `<` is escaped so a title containing "</script>" can't break out of the block.
+  return `${tags}\n<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>`;
+}
+
 // Minimal share page: crawlers read the OG tags; humans get forwarded to the
 // article on the marketing site.
 export function sharePageHtml(pub, { apiBase, siteBase }) {
   const ogImage = `${apiBase}/api/journal/publications/${encodeURIComponent(pub.id)}/og.png`;
   const target = `${siteBase}/article.html?id=${encodeURIComponent(pub.id)}`;
   const desc = String(pub.abstract || '').slice(0, 200);
+  // Scholar wants an absolute PDF link; uploads-relative paths get the API base.
+  const pdfUrl = pub.pdfUrl ? (/^https?:\/\//i.test(pub.pdfUrl) ? pub.pdfUrl : `${apiBase}${pub.pdfUrl.startsWith('/') ? '' : '/'}${pub.pdfUrl}`) : '';
   return `<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -91,6 +141,7 @@ export function sharePageHtml(pub, { apiBase, siteBase }) {
 <meta name="twitter:title" content="${esc(pub.title)}">
 <meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${esc(ogImage)}">
+${scholarBlock(pub, { pdfUrl, target })}
 <meta http-equiv="refresh" content="0;url=${esc(target)}">
 <link rel="canonical" href="${esc(target)}">
 </head><body>
