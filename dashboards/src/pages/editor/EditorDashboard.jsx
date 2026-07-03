@@ -5,10 +5,13 @@ import { useAuth } from '../../auth.jsx';
 import { useToast } from '../../components/toast.jsx';
 import NewsFeed from '../../components/NewsFeed.jsx';
 import NewsPoster from '../../components/NewsPoster.jsx';
-import PaperModal from './PaperModal.jsx';
-import Icon from '../../components/Icon.jsx';
+import PaperModal, { CoReviewerChip } from './PaperModal.jsx';
 
 const CAN_POST_NEWS = ['senior', 'chief', 'director'];
+
+// Window event carrying the current inbox size; EditorApp listens to keep the
+// sidebar queue badge in sync with every fetch (poll + decisions).
+export const QUEUE_COUNT_EVENT = 'editor-queue-count';
 
 // Per-tier framing: each editor role sees a dedicated queue explaining its job
 // in the pipeline (JOURNAL_PIPELINE §9).
@@ -22,6 +25,11 @@ const TIERS = {
       'You can see the other reviews editor’s call live once they submit.',
     ],
     queueLabel: 'Papers awaiting your review',
+    empty: {
+      icon: 'inbox',
+      title: 'No papers to review',
+      body: 'New submissions in your subject land here the moment an author submits. Each paper goes to two reviews editors, and it only advances when you both approve.',
+    },
   },
   senior: {
     title: 'Senior Editor — quality checks',
@@ -32,6 +40,11 @@ const TIERS = {
       'Feedback is required; no recommendation needed at this stage.',
     ],
     queueLabel: 'Papers awaiting a senior decision',
+    empty: {
+      icon: 'shield',
+      title: 'No papers awaiting a senior decision',
+      body: 'Papers reach you twice: for screening the moment both reviews editors approve, and for the final check after the associate editor finishes two revision rounds with the author.',
+    },
   },
   associate: {
     title: 'Associate Editor — author collaboration',
@@ -42,6 +55,11 @@ const TIERS = {
       'After the second round the paper moves to the senior editor’s final check.',
     ],
     queueLabel: 'Papers in revision with you',
+    empty: {
+      icon: 'pen',
+      title: 'No papers in revision with you',
+      body: 'Papers arrive here once a senior editor approves them at screening. From there you run two revision rounds with the author before the senior final check.',
+    },
   },
   chief: {
     title: 'Editor-in-Chief — final sign-off',
@@ -51,6 +69,11 @@ const TIERS = {
       'Approve with feedback to send it to the Director’s publish queue, or reject with feedback.',
     ],
     queueLabel: 'Papers awaiting your sign-off',
+    empty: {
+      icon: 'check-circle',
+      title: 'No papers awaiting sign-off',
+      body: "Papers arrive after the senior editor's final check — the last gate before the Director. Approving hands them to the Director's publish queue.",
+    },
   },
 };
 
@@ -84,7 +107,12 @@ export default function EditorDashboard() {
     if (!silent) setLoading(true);
     api
       .editorPapers()
-      .then(setData)
+      .then((d) => {
+        setData(d);
+        // Keep the nav queue badge (EditorApp) in sync with what we just
+        // fetched — it updates instantly after decisions and on each poll.
+        window.dispatchEvent(new CustomEvent(QUEUE_COUNT_EVENT, { detail: d.inbox?.length ?? 0 }));
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -96,11 +124,13 @@ export default function EditorDashboard() {
     return () => clearInterval(t);
   }, [load]);
 
-  // Refresh after any decision, and close the modal.
-  const onActed = () => {
+  // Refresh after any decision, and close the modal. The modal passes a
+  // consequence message ("Approved — moves to Senior screening") so the toast
+  // states what the decision just triggered.
+  const onActed = (message) => {
     setActive(null);
     load(true);
-    toast.success('Saved');
+    toast.success(message || 'Saved');
   };
 
   if (loading) return <p className="muted">Loading your queue…</p>;
@@ -155,7 +185,11 @@ export default function EditorDashboard() {
         {tier.queueLabel} <Badge tone="gray">{inbox.length}</Badge>
       </h2>
       {inbox.length === 0 ? (
-        <EmptyState>{query ? 'No papers match your search.' : <>Nothing waiting on you right now. <Icon name="party" size={16} /></>}</EmptyState>
+        query ? (
+          <EmptyState>No papers match your search.</EmptyState>
+        ) : (
+          <EmptyState icon={tier.empty.icon} title={tier.empty.title}>{tier.empty.body}</EmptyState>
+        )
       ) : (
         <div className="grid grid-2">
           {inbox.map((p) => (
@@ -194,13 +228,12 @@ function PaperCard({ paper, role, archived, onOpen }) {
         {paper.authorName} · {new Date(paper.submittedAt).toLocaleDateString()}
       </p>
 
-      {/* Reviews editor: surface the co-reviewer's decision when present. */}
-      {role === 'reviews' && paper.coReviewerDecision && (
-        <p className="muted" style={{ marginBottom: '0.6rem' }}>
-          Co-reviewer:{' '}
-          <Badge tone={paper.coReviewerDecision === 'approve' ? 'green' : 'red'}>
-            {paper.coReviewerDecision === 'approve' ? 'approved' : 'declined'}
-          </Badge>
+      {/* Reviews editor, queue cards only: the paper's fate depends on BOTH
+          reviewers approving, so show the co-reviewer status at a glance
+          (pending / approved / declined). Archived cards show "Your call". */}
+      {role === 'reviews' && !archived && (
+        <p style={{ marginBottom: '0.6rem' }}>
+          <CoReviewerChip coReview={paper.coReview} />
         </p>
       )}
       {role === 'reviews' && archived && paper.myReview && (

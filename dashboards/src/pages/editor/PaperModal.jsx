@@ -16,18 +16,130 @@ const ROLE_LABEL = {
 const decisionTone = (d) => (d === 'approve' || d === 'approved' ? 'green' : 'red');
 const decisionWord = (d) => (d === 'approve' || d === 'approved' ? 'approved' : 'declined');
 
+// The 5 pipeline stages in order, for the stage-context strip. `label` names
+// the CURRENT stage (mirroring the researcher-side stepper in MyJournal.jsx so
+// authors and editors use the same stage names); `next` names what the
+// FOLLOWING stage does, so every editor sees what their decision feeds into.
+// The API's stageLabel is deliberately NOT used for active stages — it
+// describes the completed hop (Director-facing, e.g. "Reviewed by Reviews
+// Editors" at senior_screen), which reads one stage behind in this strip.
+const PIPELINE = [
+  { key: 'review', label: 'Reviews editors', next: 'Senior editor screens both reviews decisions' },
+  { key: 'senior_screen', label: 'Senior screen', next: 'Associate editor works revisions with the author' },
+  { key: 'associate', label: 'Associate revisions', next: 'Senior editor runs the final check' },
+  { key: 'senior_final', label: 'Senior final check', next: 'Editor-in-chief makes the final sign-off' },
+  { key: 'chief', label: 'Editor-in-chief sign-off', next: 'Director publishes it to the journal' },
+];
+
+// Shared consequence line for a straight decline (senior + chief forms).
+const REJECTED_NEXT = 'Rejected — the Director will notify the author';
+
+// Compact pipeline-position strip shown at the top of the modal: stage n of 5,
+// the current stage's label, a mini progress track, and what comes next.
+// Published/rejected are terminal states with their own label. For a reviews
+// editor at the review stage it also carries the co-reviewer status chip.
+function StageStrip({ paper, role }) {
+  const idx = PIPELINE.findIndex((s) => s.key === paper.stage);
+  const strip = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    flexWrap: 'wrap',
+    padding: '0.55rem 0.75rem',
+    marginBottom: '0.85rem',
+    background: 'var(--surface-alt)',
+    border: '1px solid var(--border)',
+    borderRadius: 10,
+    fontSize: '0.85rem',
+  };
+
+  // Terminal states: no "stage n of 5" — the paper has left the pipeline.
+  if (paper.stage === 'published') {
+    return (
+      <div style={strip}>
+        <Badge tone="green">Pipeline complete</Badge>
+        <strong>{paper.stageLabel || 'Approved by Editor-in-Chief'}</strong>
+        <span className="muted">Next: Director publishes it to the journal</span>
+      </div>
+    );
+  }
+  if (paper.stage === 'rejected') {
+    return (
+      <div style={strip}>
+        <Badge tone="red">{paper.stageLabel || 'Declined'}</Badge>
+        <span className="muted">This paper exited the pipeline — the Director notifies the author.</span>
+      </div>
+    );
+  }
+  if (idx === -1) return null;
+
+  return (
+    <div style={strip}>
+      <Badge tone="blue">Stage {idx + 1} of {PIPELINE.length}</Badge>
+      <strong>{PIPELINE[idx].label}</strong>
+      <span aria-hidden="true" style={{ display: 'flex', gap: 3, flex: '1 1 80px', minWidth: 60, maxWidth: 130 }}>
+        {PIPELINE.map((s, i) => (
+          <span
+            key={s.key}
+            title={s.label}
+            style={{
+              flex: 1,
+              height: 5,
+              borderRadius: 999,
+              background: i < idx ? 'var(--brand)' : i === idx ? 'var(--brand-dark)' : 'var(--border)',
+            }}
+          />
+        ))}
+      </span>
+      <span className="muted icon-label">
+        <Icon name="arrow-right" size={13} /> Next: {PIPELINE[idx].next}
+      </span>
+      {role === 'reviews' && paper.stage === 'review' && <CoReviewerChip coReview={paper.coReview} />}
+    </div>
+  );
+}
+
+// At-a-glance fate dependency for a reviews editor: a paper only advances when
+// BOTH reviews editors approve, so surface the peer's recorded decision (or its
+// absence) as a status chip. Also used on the queue cards in EditorDashboard.
+export function CoReviewerChip({ coReview }) {
+  if (!coReview) {
+    return (
+      <Badge tone="gray">
+        <span className="icon-label"><Icon name="clock" size={12} /> Waiting on 2nd reviewer</span>
+      </Badge>
+    );
+  }
+  if (coReview.decision === 'approve') {
+    return (
+      <Badge tone="green">
+        <span className="icon-label"><Icon name="check" size={12} /> Co-reviewer approved</span>
+      </Badge>
+    );
+  }
+  return (
+    <Badge tone="red">
+      <span className="icon-label"><Icon name="x" size={12} /> Co-reviewer requested rejection</span>
+    </Badge>
+  );
+}
+
 // The "See more" detail view. Renders the paper's extracted info plus the
 // decision controls appropriate to the editor's role.
 export default function PaperModal({ paper, role, onClose, onActed }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const run = async (fn) => {
+  // `message` states what the action just triggered (e.g. "Approved — moves to
+  // Senior screening"); EditorDashboard shows it as the success toast. Pass a
+  // function to derive it from the API response (the updated paper) when the
+  // consequence depends on state that may have changed server-side.
+  const run = async (fn, message) => {
     setError('');
     setBusy(true);
     try {
-      await fn();
-      onActed();
+      const result = await fn();
+      onActed(typeof message === 'function' ? message(result) : message);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -45,6 +157,8 @@ export default function PaperModal({ paper, role, onClose, onActed }) {
   return (
     <Modal title={paper.title} onClose={onClose} wide>
       {error && <div className="login-error">{error}</div>}
+
+      <StageStrip paper={paper} role={role} />
 
       <div className="row" style={{ marginBottom: '0.75rem' }}>
         <Badge>{paper.category}</Badge>
@@ -97,7 +211,11 @@ function RequestRevision({ paper, busy, run }) {
             <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. add controls, clarify methods…" />
           </Field>
           <div className="row">
-            <Button className="btn-sm" disabled={busy || !note.trim()} onClick={() => run(() => api.requestRevision(paper.id, note))}>
+            <Button
+              className="btn-sm"
+              disabled={busy || !note.trim()}
+              onClick={() => run(() => api.requestRevision(paper.id, note), 'Revision request sent — the author will be emailed')}
+            >
               Send request
             </Button>
             <Button variant="ghost" className="btn-sm" onClick={() => setOpen(false)}>Cancel</Button>
@@ -261,8 +379,25 @@ function ReviewsForm({ paper, busy, run }) {
     );
   }
 
+  // What this decision triggers depends on the peer's decision: a paper
+  // advances only when BOTH reviews editors approve (§9.1). Derived from the
+  // stage the server returns AFTER recording ours, so the toast stays truthful
+  // even if the peer submitted since our last fetch.
+  const consequence = (decision, updated) => {
+    if (updated?.stage === 'senior_screen') return 'Approved — both reviewers agree, so it moves to Senior screening';
+    if (updated?.stage === 'rejected') {
+      return decision === 'approve'
+        ? 'Approved — but your co-reviewer declined, so the paper is declined; the Director will notify the author'
+        : 'Rejected — the paper is declined; the Director will notify the author';
+    }
+    // Still in review: the co-reviewer hasn't submitted yet.
+    return decision === 'approve'
+      ? 'Approved — now waiting on your co-reviewer'
+      : 'Rejected — the paper can no longer advance; it is finalized once your co-reviewer submits';
+  };
+
   const submit = (decision) =>
-    run(() => api.review(paper.id, { decision, comments, recommendation }));
+    run(() => api.review(paper.id, { decision, comments, recommendation }), (updated) => consequence(decision, updated));
 
   return (
     <>
@@ -292,7 +427,15 @@ function ReviewsForm({ paper, busy, run }) {
 // --- Senior editor: screening + final check (feedback only, no recommendation) ---
 function SeniorForm({ paper, busy, run }) {
   const [comments, setComments] = useState('');
-  const submit = (decision) => run(() => api.senior(paper.id, { decision, comments }));
+  // The senior sits at two gates: screening (→ associate) and final (→ chief).
+  const screening = paper.stage === 'senior_screen';
+  const consequence = (decision) => {
+    if (decision !== 'approve') return REJECTED_NEXT;
+    return screening
+      ? 'Approved — moves to the Associate editor for revision rounds with the author'
+      : 'Approved — heads to the Editor-in-Chief for final sign-off';
+  };
+  const submit = (decision) => run(() => api.senior(paper.id, { decision, comments }), consequence(decision));
   return (
     <>
       <h4 style={{ margin: '0 0 0.5rem' }}>Your decision</h4>
@@ -336,7 +479,17 @@ function AssociateForm({ paper, busy, run }) {
           <Field label="Round note (optional)">
             <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="What changed this round?" />
           </Field>
-          <Button disabled={busy} onClick={() => run(() => api.associateRound(paper.id, { note }))}>
+          <Button
+            disabled={busy}
+            onClick={() =>
+              run(
+                () => api.associateRound(paper.id, { note }),
+                isFinalRound
+                  ? `Round ${rounds + 1} complete — heads to the Senior editor's final check`
+                  : `Round ${rounds + 1} of 2 logged — one revision round with the author remains`,
+              )
+            }
+          >
             {isFinalRound ? 'Complete final round & send to senior editor' : `Complete round ${rounds + 1}`}
           </Button>
         </>
@@ -348,7 +501,9 @@ function AssociateForm({ paper, busy, run }) {
 // --- Editor-in-chief: final sign-off (feedback required) --------------------
 function ChiefForm({ paper, busy, run }) {
   const [comments, setComments] = useState('');
-  const submit = (decision) => run(() => api.chief(paper.id, { decision, comments }));
+  const consequence = (decision) =>
+    decision === 'approve' ? "Approved — enters the Director's publish queue" : REJECTED_NEXT;
+  const submit = (decision) => run(() => api.chief(paper.id, { decision, comments }), consequence(decision));
   return (
     <>
       <h4 style={{ margin: '0 0 0.5rem' }}>Final sign-off</h4>
