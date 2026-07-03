@@ -2544,3 +2544,78 @@ html[data-theme='dark'] .jr-comp-deadline.urgent { color: #fca5a5; background: #
 .jr-cta p { color: rgba(255,255,255,0.85); line-height: 1.6; margin: 0 0 1.3rem; }
 .jr-cta-ghost { color: #fff; border-color: rgba(255,255,255,0.4); }
 .jr-cta-ghost:hover { background: rgba(255,255,255,0.1); }
+
+/* ============================================================================
+   UI SEAMLESS SWEEP (unit 5) — additive only; nothing above is modified.
+   Finishes the emoji→icon pass: icon-only buttons with real tap targets,
+   inline icon alignment, themed warning callout, Sandbox tabs & grids.
+   ============================================================================ */
+
+/* Page titles that lead with a brand icon chip. */
+.page-title-ico { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; min-width: 0; }
+
+/* Guide-ico variants: compact size + semantic tints (success / danger). */
+.guide-ico-sm { width: 28px; height: 28px; border-radius: 8px; }
+.guide-ico-success { color: var(--success); background: rgba(22, 163, 74, 0.12); }
+.guide-ico-danger { color: var(--danger); background: rgba(239, 68, 68, 0.12); }
+
+/* Icon-only button: quiet by default, ≥42px touch target on mobile. */
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; min-height: 36px; padding: 0.25rem; flex: none;
+  background: none; border: none; border-radius: 10px;
+  color: var(--body-alt); cursor: pointer; font: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--surface-alt); color: var(--heading); }
+.icon-btn-danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+@media (max-width: 600px) {
+  .icon-btn { min-width: 42px; min-height: 42px; }
+  /* Message-bubble actions get comfortable touch targets too. */
+  .dm-bubble-actions button { min-width: 42px; min-height: 42px; }
+}
+
+/* Community like button — the heart fills once liked. */
+.like-btn.on { color: var(--danger) !important; }
+.like-btn.on .icon path { fill: currentColor; }
+
+/* Inline icon alignment inside text-flow contexts (badges, file rows, prose). */
+.badge .icon,
+.fm-name .icon,
+.inline-ico { vertical-align: -2px; }
+.badge .icon { margin-right: 0.15rem; }
+
+/* Warning callout (Email desk) — themed, replaces hardcoded amber-on-white. */
+.callout-warn {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  background: #fffbeb; color: #92400e; border: 1px solid #fde68a;
+  padding: 0.6rem 0.8rem; border-radius: 10px; font-size: 0.88rem;
+}
+.callout-warn .icon { flex: none; margin-top: 2px; }
+html[data-theme='dark'] .callout-warn {
+  background: rgba(245, 158, 11, 0.12); color: #fbbf24; border-color: rgba(245, 158, 11, 0.35);
+}
+
+/* Sandbox: project/notes grids (previously unstyled) + themed tabs. */
+.sandbox-grid,
+.notes-grid {
+  display: grid; gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+.sandbox-tab {
+  padding: 0.5rem 1rem; min-height: 42px;
+  background: transparent; border: none; border-radius: 8px 8px 0 0;
+  cursor: pointer; font: inherit; font-size: 0.92rem;
+  color: var(--body-alt); text-transform: capitalize;
+}
+.sandbox-tab:hover { color: var(--heading); }
+.sandbox-tab.on { background: var(--surface-alt); color: var(--brand-deep); font-weight: 600; }
+html[data-theme='dark'] .sandbox-tab.on { color: #9cc4f8; }
+
+/* Calendar/mentor rows: keep the brand chip compact inside .cal-item. */
+.cal-item .guide-ico { width: 30px; height: 30px; border-radius: 8px; }
+
+/* Drive: view toggles and crumbs hold line icons cleanly. */
+.fm-view .seg-btn { display: inline-flex; align-items: center; justify-content: center; }
+.fm-view .seg-btn .icon,
+.fm-btn .icon { display: block; }

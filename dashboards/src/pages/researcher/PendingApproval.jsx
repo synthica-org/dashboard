@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
+import Icon from '../../components/Icon.jsx';
 import { EXP_ANCHORS, LEAD_ANCHORS, anchorFor } from '../../onboardingScales.js';
 
 const INTERESTS = ['Biology', 'Chemistry', 'Physics', 'Mathematics', 'Computer Science', 'Economics', 'Psychology', 'Humanities', 'Machine Learning', 'Neuroscience'];
@@ -36,7 +37,7 @@ export default function PendingApproval() {
     return (
       <div className="login-wrap">
         <div className="login-card" style={{ maxWidth: 480 }}>
-          <div style={{ fontSize: '2.5rem' }}>📪</div>
+          <span className="guide-ico guide-ico-lg" aria-hidden="true" style={{ marginBottom: '0.5rem' }}><Icon name="inbox" size={22} /></span>
           <h1 style={{ marginBottom: '0.25rem' }}>Your application wasn't approved</h1>
           <p className="sub">
             Thanks for your interest in Synthica. Our Moderators couldn't approve your membership this time.
@@ -61,7 +62,7 @@ export default function PendingApproval() {
     return (
       <div className="login-wrap">
         <div className="login-card" style={{ maxWidth: 480 }}>
-          <div style={{ fontSize: '2.5rem' }}>⏳</div>
+          <span className="guide-ico guide-ico-lg" aria-hidden="true" style={{ marginBottom: '0.5rem' }}><Icon name="clock" size={22} /></span>
           <h1 style={{ marginBottom: '0.25rem' }}>Application under review</h1>
           <p className="sub">
             Thanks, {user?.name?.split(' ')[0]} — a Moderator is reviewing your profile and assigning your
@@ -71,9 +72,9 @@ export default function PendingApproval() {
           <div className="info-block" style={{ textAlign: 'left', marginBottom: '1rem' }}>
             <strong style={{ display: 'block', marginBottom: '0.45rem' }}>What happens next</strong>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.4rem', fontSize: '0.85rem' }}>
-              <li>✅ You created your account and submitted your profile.</li>
-              <li>⏳ A Moderator reviews it and assigns your starting role.</li>
-              <li>🚀 You're dropped into your dashboard — no need to refresh.</li>
+              <li className="icon-label"><Icon name="check-circle" size={14} /> You created your account and submitted your profile.</li>
+              <li className="icon-label"><Icon name="clock" size={14} /> A Moderator reviews it and assigns your starting role.</li>
+              <li className="icon-label"><Icon name="rocket" size={14} /> You're dropped into your dashboard — no need to refresh.</li>
             </ul>
           </div>
 
@@ -81,7 +82,7 @@ export default function PendingApproval() {
             <span className="badge badge-blue">Research {user.researchExperience}/10</span>
             <span className="badge badge-blue">Leadership {user.leadershipExperience ?? '—'}/10</span>
             {user.wantsChapterLead && <span className="badge badge-gold">Chapter lead candidate</span>}
-            <span className={`badge ${user.resumeUrl ? 'badge-green' : 'badge-gray'}`}>{user.resumeUrl ? 'Résumé added ✓' : 'No résumé yet'}</span>
+            <span className={`badge ${user.resumeUrl ? 'badge-green' : 'badge-gray'}`}>{user.resumeUrl ? <><Icon name="check" size={11} /> Résumé added</> : 'No résumé yet'}</span>
           </div>
 
           {!user.resumeUrl && (
@@ -159,7 +160,7 @@ function IntakeForm({ user, refreshUser, logout, onDone, rejected }) {
     <div className="login-wrap">
       <div className="login-card" style={{ maxWidth: 520, textAlign: 'left' }}>
         <h1 style={{ marginBottom: '0.25rem' }}>
-          {rejected ? 'Update your profile 🪪' : `One last step, ${user?.name?.split(' ')[0]} 🪪`}
+          {rejected ? 'Update your profile' : `One last step, ${user?.name?.split(' ')[0]}`}
         </h1>
         <p className="sub">
           {rejected
@@ -168,7 +169,7 @@ function IntakeForm({ user, refreshUser, logout, onDone, rejected }) {
         </p>
         {error && <div className="login-error">{error}</div>}
 
-        <label className="label-up">Resume / CV link <span className="muted">(recommended ⭐)</span></label>
+        <label className="label-up">Resume / CV link <span className="muted">(recommended)</span></label>
         <input value={f.resumeUrl} onChange={(e) => set({ resumeUrl: e.target.value })} placeholder="https://drive.google.com/…" style={{ marginBottom: '0.7rem' }} />
 
         <div className="grid grid-2" style={{ marginBottom: '0.7rem' }}>

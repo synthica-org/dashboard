@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../api.js';
 import { Card, Badge, Button } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 
 // Researcher tags a moderator can grant. Mirrors backend RESEARCHER_TAGS.
@@ -45,14 +46,15 @@ export default function ModeratorConsole() {
 
 // --- small shared bits ------------------------------------------------------
 
-// Section heading with an emoji, a pending-count badge, and a one-line "what this
-// queue is for" caption — keeps the whole desk self-explanatory.
+// Section heading with a brand-tinted icon chip, a pending-count badge, and a
+// one-line "what this queue is for" caption — keeps the whole desk self-explanatory.
 function QueueHeading({ icon, title, count, hint, children }) {
   return (
     <div style={{ marginBottom: '0.6rem' }}>
-      <div className="card-row" style={{ marginBottom: hint ? '0.15rem' : 0 }}>
-        <h2 className="section-title" style={{ margin: 0 }}>
-          <span aria-hidden="true">{icon}</span> {title}{' '}
+      <div className="card-row" style={{ marginBottom: hint ? '0.15rem' : 0, flexWrap: 'wrap' }}>
+        <h2 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', minWidth: 0 }}>
+          <span className="guide-ico" aria-hidden="true"><Icon name={icon} size={18} /></span>
+          {title}{' '}
           {typeof count === 'number' && <Badge tone={count > 0 ? 'gold' : 'gray'}>{count} pending</Badge>}
         </h2>
         {children}
@@ -81,7 +83,7 @@ function OnboardingQueue({ apps, review }) {
   return (
     <section style={{ marginBottom: '1.75rem' }}>
       <QueueHeading
-        icon="👋"
+        icon="user-plus"
         title="New member onboarding"
         count={apps ? rows.length : undefined}
         hint="Review a sign-up's profile and signals, then approve with a starting tag (default Associate) or reject with a reason."
@@ -89,7 +91,7 @@ function OnboardingQueue({ apps, review }) {
       {apps === null ? (
         <Card><p className="muted" style={{ margin: 0 }}>Loading…</p></Card>
       ) : rows.length === 0 ? (
-        <Card><p className="muted" style={{ margin: 0 }}>No new members waiting. ✓</p></Card>
+        <Card><p className="muted icon-label" style={{ margin: 0 }}><Icon name="check-circle" size={14} /> No new members waiting.</p></Card>
       ) : (
         <div className="stack">{rows.map((a) => <OnboardingRow key={a.id} a={a} review={review} />)}</div>
       )}
@@ -149,7 +151,7 @@ function RoleApplicationsQueue({ apps, review }) {
   return (
     <section style={{ marginBottom: '1.75rem' }}>
       <QueueHeading
-        icon="🎓"
+        icon="graduation-cap"
         title="Role upgrade applications"
         count={apps ? rows.length : undefined}
         hint="Lead, Independent, and Chapter Leader requests. Approving adds the tag (and unlocks the matching workspace + certificate)."
@@ -230,7 +232,7 @@ function ProposalsQueue() {
   return (
     <section style={{ marginBottom: '1.75rem' }}>
       <QueueHeading
-        icon="📋"
+        icon="clipboard"
         title="Independent project proposals"
         count={Array.isArray(proposals) ? rows.length : undefined}
         hint="Approve a submitted research proposal to create the project, or return it with feedback so the researcher can resubmit."
@@ -240,7 +242,7 @@ function ProposalsQueue() {
       ) : proposals === undefined ? (
         <Card>
           <p className="muted" style={{ margin: 0 }}>
-            ✨ <strong>Coming soon</strong> — the independent-proposals workflow isn't enabled on this backend yet.
+            <Icon name="sparkles" size={14} className="inline-ico" /> <strong>Coming soon</strong> — the independent-proposals workflow isn't enabled on this backend yet.
             Approved Independent Researchers will submit proposals here for review.
           </p>
         </Card>
@@ -308,7 +310,7 @@ function ArchiveQueue() {
   return (
     <section style={{ marginBottom: '1.75rem' }}>
       <QueueHeading
-        icon="📚"
+        icon="books"
         title="Archive verification"
         count={queue ? rows.length : undefined}
         hint="Self-archived papers stay hidden until you verify them. Verify to publish to the public archive, or reject."
@@ -366,7 +368,7 @@ function TagAssignment() {
   return (
     <section style={{ marginBottom: '1.75rem' }}>
       <QueueHeading
-        icon="🏷️"
+        icon="tags"
         title="Tag (re)assignment"
         hint="Search members and adjust their researcher tags directly — granting a tag also activates a pending account."
       />
@@ -406,9 +408,10 @@ function TagAssignment() {
                           className="badge badge-blue"
                           style={{ cursor: 'pointer', border: 'none' }}
                           title="Click to remove"
+                          aria-label={`Remove ${TAG_LABELS[t] || t} tag`}
                           onClick={() => removeTag(u, t)}
                         >
-                          {TAG_LABELS[t] || t} ✕
+                          {TAG_LABELS[t] || t} <Icon name="x" size={10} />
                         </button>
                       ))}
                   </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { Card, Badge, Button, Field, EmptyState, Pfp, Modal } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 import { imageSrc } from '../../files.js';
 
@@ -48,7 +49,7 @@ export default function Mentors() {
       <div className="comp-hero">
         <span className="comp-hero-glow" />
         <div className="comp-hero-body">
-          <span className="comp-hero-tag">🧑‍🏫 Expertise Mentors</span>
+          <span className="comp-hero-tag icon-label"><Icon name="graduation-cap" size={13} /> Expertise Mentors</span>
           <h1 className="comp-hero-title">Book a 1:1 with a subject-matter mentor</h1>
           <p className="comp-hero-desc">
             Get unstuck fast. Browse mentors by specialty, pick an open time, and book a call —
@@ -63,18 +64,20 @@ export default function Mentors() {
           <div className="stack">
             {upcoming.map((b) => (
               <div key={b.id} className="cal-item">
-                <span className="cal-item-icon">🧑‍🏫</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600 }}>{b.mentorName}</div>
-                  <div className="muted" style={{ fontSize: '0.78rem' }}>
+                <span className="guide-ico cal-item-icon" aria-hidden="true"><Icon name="video" size={17} /></span>
+                <div className="cal-item-body">
+                  <div className="cal-item-title">{b.mentorName}</div>
+                  <div className="muted cal-item-meta">
                     {fmtSlot(b.slot)}{b.note ? ` · “${b.note}”` : ''}
                   </div>
                 </div>
-                {b.meetingUrl && <a className="btn btn-sm btn-ghost" href={b.meetingUrl} target="_blank" rel="noreferrer">Join link</a>}
-                <button className="btn btn-sm btn-ghost" onClick={() =>
-                  api.cancelMentorBooking(b.id).then(() => { toast.success('Booking cancelled'); loadBookings(); load(); }).catch((e) => toast.error(e.message))}>
-                  Cancel
-                </button>
+                <div className="cal-item-actions">
+                  {b.meetingUrl && <a className="btn btn-sm btn-ghost" href={b.meetingUrl} target="_blank" rel="noreferrer"><span className="icon-label"><Icon name="video" size={13} /> Join link</span></a>}
+                  <button className="btn btn-sm btn-ghost" onClick={() =>
+                    api.cancelMentorBooking(b.id).then(() => { toast.success('Booking cancelled'); loadBookings(); load(); }).catch((e) => toast.error(e.message))}>
+                    Cancel
+                  </button>
+                </div>
               </div>
             ))}
           </div>

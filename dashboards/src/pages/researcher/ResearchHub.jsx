@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Card, Badge, Button, Field, EmptyState, Modal } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 import { imageSrc } from '../../files.js';
 import { Pfp } from '../../components/ui.jsx';
@@ -32,19 +33,22 @@ export default function ResearchHub() {
       <p className="page-sub">Every open project listing across Synthica — find one and apply.</p>
       <div className="info-block" style={{ marginBottom: '1rem' }}>
         {user?.resumeUrl
-          ? '📎 Your résumé is attached automatically when you apply.'
+          ? <span className="icon-label"><Icon name="paperclip" size={13} /> Your résumé is attached automatically when you apply.</span>
           : <>No résumé on file — <Link to="/researcher/tools">add one in Tools</Link> to auto-apply.</>}
       </div>
       {error && <div className="login-error">{error}</div>}
 
       {isLead && (
         <Card style={{ marginBottom: '1.25rem' }}>
-          <div className="card-row">
-            <div>
-              <strong>🚀 Manage your listings in the Lead hub</strong>
-              <div className="muted" style={{ fontSize: '0.82rem' }}>Create projects, post listings with custom questions, and review applicants there.</div>
+          <div className="card-row" style={{ flexWrap: 'wrap' }}>
+            <div className="row" style={{ flex: '1 1 200px', minWidth: 0, flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+              <span className="guide-ico" aria-hidden="true"><Icon name="rocket" size={18} /></span>
+              <div style={{ minWidth: 0 }}>
+                <strong>Manage your listings in the Lead hub</strong>
+                <div className="muted" style={{ fontSize: '0.82rem' }}>Create projects, post listings with custom questions, and review applicants there.</div>
+              </div>
             </div>
-            <Link className="btn btn-primary btn-sm" to="/researcher/lead">Open Lead hub</Link>
+            <Link className="btn btn-primary btn-sm" to="/researcher/lead" style={{ marginLeft: 'auto', flex: 'none' }}>Open Lead hub</Link>
           </div>
         </Card>
       )}
@@ -81,7 +85,7 @@ export default function ResearchHub() {
                 <span className="muted">{Math.max(0, (l.spots || 0) - Math.max(0, (l.filled || 1) - 1))} of {l.spots} spot{l.spots === 1 ? '' : 's'} open</span>
               </div>
               <h3>{l.title}</h3>
-              {l.customApplication && <Badge tone="gold">📝 Custom application</Badge>}
+              {l.customApplication && <Badge tone="gold"><Icon name="pen" size={11} /> Custom application</Badge>}
               <p className="muted" style={{ margin: '0.4rem 0 0.6rem' }}>{l.description}</p>
               {l.lookingFor && (
                 <div className="row" style={{ gap: '0.3rem', marginBottom: '0.6rem' }}>
@@ -106,7 +110,7 @@ export default function ResearchHub() {
                     onClick={() => setApplying(l)}
                     variant={applied[l.id] ? 'ghost' : 'primary'}
                   >
-                    {applied[l.id] ? 'Applied ✓' : 'Apply'}
+                    {applied[l.id] ? <span className="icon-label">Applied <Icon name="check" size={13} /></span> : 'Apply'}
                   </Button>
                 )}
               </div>

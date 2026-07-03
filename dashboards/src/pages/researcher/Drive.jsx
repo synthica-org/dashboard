@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../api.js';
 import { EmptyState } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { embedSrc, fileMeta } from '../../files.js';
 
 // Synthica Drive — a real file-browser feel over everything you're working on.
@@ -71,20 +72,20 @@ export default function Drive() {
       <div className="fm">
         {/* toolbar */}
         <div className="fm-toolbar">
-          <button className="fm-btn" disabled={!folder} onClick={goRoot} title="Back" aria-label="Back">←</button>
+          <button className="fm-btn" disabled={!folder} onClick={goRoot} title="Back" aria-label="Back"><Icon name="arrow-left" size={15} /></button>
           <div className="fm-path">
-            <button className="fm-crumb" onClick={goRoot}>🗂 Drive</button>
+            <button className="fm-crumb icon-label" onClick={goRoot}><Icon name="folder-open" size={13} /> Drive</button>
             {folder && (
               <>
                 <span className="fm-sep">/</span>
-                <span className="fm-crumb fm-crumb-here">📁 {folder.name}</span>
+                <span className="fm-crumb fm-crumb-here icon-label"><Icon name="folder" size={13} /> {folder.name}</span>
               </>
             )}
           </div>
           <input className="fm-search" placeholder={folder ? 'Search this folder' : 'Search folders'} value={q} onChange={(e) => setQ(e.target.value)} />
           <div className="seg fm-view">
-            <button type="button" className={`seg-btn ${view === 'grid' ? 'on' : ''}`} onClick={() => setViewMode('grid')} title="Grid view" aria-label="Grid view">▦</button>
-            <button type="button" className={`seg-btn ${view === 'list' ? 'on' : ''}`} onClick={() => setViewMode('list')} title="List view" aria-label="List view">☰</button>
+            <button type="button" className={`seg-btn ${view === 'grid' ? 'on' : ''}`} onClick={() => setViewMode('grid')} title="Grid view" aria-label="Grid view"><Icon name="grid" size={15} /></button>
+            <button type="button" className={`seg-btn ${view === 'list' ? 'on' : ''}`} onClick={() => setViewMode('list')} title="List view" aria-label="List view"><Icon name="list" size={15} /></button>
           </div>
         </div>
 
@@ -97,7 +98,7 @@ export default function Drive() {
               <div className="drive-grid">
                 {visibleFolders.map((fo) => (
                   <button key={fo.id} className="drive-tile drive-folder" onDoubleClick={() => setOpen(fo.id)} onClick={() => setOpen(fo.id)}>
-                    <span className="drive-icon">📁</span>
+                    <span className="drive-icon"><Icon name="folder" size={30} /></span>
                     <span className="drive-name">{fo.name}</span>
                     <span className="muted drive-sub">{fo.files.length} item{fo.files.length === 1 ? '' : 's'}</span>
                   </button>
@@ -108,10 +109,10 @@ export default function Drive() {
                 <div className="fm-row fm-row-head"><span>Name</span><span>Kind</span><span>Items</span><span /></div>
                 {visibleFolders.map((fo) => (
                   <button key={fo.id} className="fm-row" onClick={() => setOpen(fo.id)}>
-                    <span className="fm-name">📁 {fo.name}</span>
+                    <span className="fm-name"><Icon name="folder" size={14} /> {fo.name}</span>
                     <span className="muted">Folder · {fo.sub}</span>
                     <span className="muted">{fo.files.length}</span>
-                    <span className="muted">›</span>
+                    <span className="muted"><Icon name="chevron-right" size={14} /></span>
                   </button>
                 ))}
               </div>
@@ -124,7 +125,7 @@ export default function Drive() {
                 const meta = fileMeta(file.url);
                 return (
                   <button key={file.id} className="drive-tile" title={file.url} onClick={() => openFile(file)}>
-                    <span className="drive-icon">{meta.icon}</span>
+                    <span className="drive-icon"><Icon name={meta.icon} size={30} /></span>
                     <span className="drive-name">{file.name}</span>
                     <span className="muted drive-sub">{meta.kind}{embedSrc(file.url) ? ' · preview' : ''}</span>
                   </button>
@@ -138,10 +139,10 @@ export default function Drive() {
                 const meta = fileMeta(file.url);
                 return (
                   <button key={file.id} className="fm-row" onClick={() => openFile(file)} title={file.url}>
-                    <span className="fm-name">{meta.icon} {file.name}</span>
+                    <span className="fm-name"><Icon name={meta.icon} size={14} /> {file.name}</span>
                     <span className="muted">{meta.kind}</span>
                     <span className="muted">{file.at ? new Date(file.at).toLocaleDateString() : '—'}</span>
-                    <span className="muted">{embedSrc(file.url) ? '👁' : '↗'}</span>
+                    <span className="muted"><Icon name={embedSrc(file.url) ? 'eye' : 'external-link'} size={14} /></span>
                   </button>
                 );
               })}
@@ -161,12 +162,12 @@ export default function Drive() {
         <div className="drive-overlay" onClick={() => setPreview(null)}>
           <div className="drive-preview" onClick={(e) => e.stopPropagation()}>
             <div className="card-row" style={{ marginBottom: '0.6rem' }}>
-              <strong style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {fileMeta(preview.url).icon} {preview.name}
+              <strong className="icon-label" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <Icon name={fileMeta(preview.url).icon} size={15} /> {preview.name}
               </strong>
               <span className="row" style={{ flexShrink: 0 }}>
-                <a className="btn btn-ghost btn-sm" href={preview.url} target="_blank" rel="noreferrer">Open ↗</a>
-                <button className="btn btn-ghost btn-sm" onClick={() => setPreview(null)} aria-label="Close preview">✕</button>
+                <a className="btn btn-ghost btn-sm" href={preview.url} target="_blank" rel="noreferrer"><span className="icon-label">Open <Icon name="external-link" size={12} /></span></a>
+                <button className="btn btn-ghost btn-sm" onClick={() => setPreview(null)} aria-label="Close preview"><Icon name="x" size={14} /></button>
               </span>
             </div>
             <iframe className="drive-frame" src={embedSrc(preview.url)} title={preview.name} loading="lazy" />

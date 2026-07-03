@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { Card, Badge, Button, EmptyState } from '../components/ui.jsx';
+import Icon from '../components/Icon.jsx';
 import { useToast } from '../components/toast.jsx';
 
 // Role certificates — one renderer for every Synthica role. Each certificate is
@@ -103,7 +104,10 @@ export default function Certificates() {
               const meta = CERT_META[type];
               return (
                 <Card key={type}>
-                  <h3 style={{ margin: '0 0 0.25rem' }}>🏅 {certLabel(type)}</h3>
+                  <h3 className="icon-label" style={{ margin: '0 0 0.25rem' }}>
+                    <span className="guide-ico guide-ico-sm" aria-hidden="true"><Icon name="award" size={16} /></span>
+                    {certLabel(type)}
+                  </h3>
                   <p className="muted" style={{ margin: '0 0 0.5rem', fontSize: '0.8rem' }}>{meta?.blurb}</p>
                   {cert
                     ? <p className="login-hint" style={{ margin: '0 0 0.6rem' }}>Issued {new Date(cert.issuedAt).toLocaleDateString()} · code <code>{cert.code}</code></p>
@@ -176,7 +180,7 @@ function CertificateVerifier() {
         <div className="info-block" style={{ marginTop: '0.75rem' }}>
           {result.valid ? (
             <>
-              <Badge tone="green">✓ Valid</Badge>{' '}
+              <Badge tone="green"><Icon name="check" size={11} /> Valid</Badge>{' '}
               <strong>{result.name}</strong> — {certLabel(result.type)}
               {result.issuedAt && <span className="muted"> · issued {new Date(result.issuedAt).toLocaleDateString()}</span>}
             </>

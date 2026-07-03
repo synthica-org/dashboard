@@ -10,14 +10,14 @@ import { useToast } from '../../components/toast.jsx';
 // each day cell, and anything unrecognised falls back to a generic event so the
 // calendar never breaks on a new event type.
 const KIND_META = {
-  paper: { icon: '📄', tone: 'gold', label: 'Paper', dot: 'paper' },
-  task: { icon: '✅', tone: 'blue', label: 'Task', dot: 'task' },
-  event: { icon: '📅', tone: 'gray', label: 'Event', dot: 'event' },
-  workshop: { icon: '🎓', tone: 'blue', label: 'Workshop', dot: 'event' },
-  meetup: { icon: '🤝', tone: 'blue', label: 'Meetup', dot: 'event' },
-  mentor: { icon: '🎥', tone: 'green', label: 'Mentor call', dot: 'mentor' },
-  booking: { icon: '🎥', tone: 'green', label: 'Mentor call', dot: 'mentor' },
-  pathway: { icon: '🧭', tone: 'gray', label: 'Pathway', dot: 'pathway' },
+  paper: { icon: 'file-text', tone: 'gold', label: 'Paper', dot: 'paper' },
+  task: { icon: 'check-circle', tone: 'blue', label: 'Task', dot: 'task' },
+  event: { icon: 'calendar', tone: 'gray', label: 'Event', dot: 'event' },
+  workshop: { icon: 'graduation-cap', tone: 'blue', label: 'Workshop', dot: 'event' },
+  meetup: { icon: 'users', tone: 'blue', label: 'Meetup', dot: 'event' },
+  mentor: { icon: 'video', tone: 'green', label: 'Mentor call', dot: 'mentor' },
+  booking: { icon: 'video', tone: 'green', label: 'Mentor call', dot: 'mentor' },
+  pathway: { icon: 'compass', tone: 'gray', label: 'Pathway', dot: 'pathway' },
 };
 const metaFor = (kind) => KIND_META[kind] || KIND_META.event;
 const iso = (d) => d.toISOString().slice(0, 10);
@@ -148,7 +148,7 @@ export default function Calendar() {
         <Card>
           <h3 style={{ marginTop: 0 }}>Coming up</h3>
           {upcoming.length === 0 ? (
-            <p className="muted" style={{ margin: 0 }}>Nothing on the horizon. Enjoy the calm 🌤</p>
+            <p className="muted" style={{ margin: 0 }}>Nothing on the horizon. Enjoy the calm.</p>
           ) : (
             <div className="stack">
               {upcoming.map((it) => <CalRow key={it.id} it={it} onRemove={remove} onRsvp={rsvp} showDate />)}
@@ -169,7 +169,7 @@ function CalRow({ it, onRemove, onRsvp, showDate }) {
   const overdue = past && isDeadline;
   return (
     <div className="cal-item">
-      <span className="cal-item-icon">{meta.icon}</span>
+      <span className="guide-ico cal-item-icon" aria-hidden="true"><Icon name={meta.icon} size={17} /></span>
       <div className="cal-item-body">
         <div className="cal-item-title">{it.title}</div>
         <div className="muted cal-item-meta">
@@ -185,7 +185,7 @@ function CalRow({ it, onRemove, onRsvp, showDate }) {
           </button>
         )}
         <Badge tone={overdue ? 'red' : meta.tone}>{overdue ? 'overdue' : meta.label}</Badge>
-        {it.canDelete && <button className="link-btn" onClick={() => onRemove(it)} aria-label="Delete"><Icon name="x" size={15} /></button>}
+        {it.canDelete && <button className="icon-btn icon-btn-danger" onClick={() => onRemove(it)} aria-label="Delete" title="Delete"><Icon name="x" size={15} /></button>}
       </div>
     </div>
   );
@@ -208,8 +208,8 @@ function EventForm({ user, onAdded }) {
     Promise.allSettled([api.myProjects(), api.chapter()]).then(([pr, ch]) => {
       const t = [];
       if (pr.status === 'fulfilled')
-        for (const p of pr.value || []) t.push({ value: `project:${p.id}`, label: `📁 ${p.title}`, lead: p.leadId === user.id });
-      if (ch.status === 'fulfilled' && ch.value?.id) t.push({ value: `chapter:${ch.value.id}`, label: `🌍 ${ch.value.name} (chapter)`, lead: true });
+        for (const p of pr.value || []) t.push({ value: `project:${p.id}`, label: p.title, lead: p.leadId === user.id });
+      if (ch.status === 'fulfilled' && ch.value?.id) t.push({ value: `chapter:${ch.value.id}`, label: `${ch.value.name} (chapter)`, lead: true });
       setTargets(t);
       if (t[0]) setF((x) => ({ ...x, target: t[0].value }));
     });

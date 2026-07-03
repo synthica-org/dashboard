@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Card, Button, Pfp, EmptyState } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 import { useRealtime } from '../../realtime.js';
 import SafetyMenu from '../../components/SafetyMenu.jsx';
@@ -131,16 +132,21 @@ function Composer({ onPosted }) {
                 className="btn btn-ghost btn-sm"
                 onClick={() => setImageUrl('')}
                 title="Remove image"
-                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)', color: '#fff' }}
+                aria-label="Remove image"
+                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)', color: '#fff', minWidth: 42, minHeight: 36 }}
               >
-                ✕
+                <Icon name="x" size={14} />
               </button>
             </div>
           )}
           <div className="row" style={{ justifyContent: 'space-between', marginTop: '0.5rem', gap: '0.5rem' }}>
             <div className="row" style={{ gap: '0.15rem' }}>
-              <Button variant="ghost" className="btn-sm" onClick={() => setShowLink((v) => !v)}>🔗 {showLink ? 'Remove link' : 'Add link'}</Button>
-              <Button variant="ghost" className="btn-sm" disabled={uploading} onClick={() => fileRef.current?.click()}>🖼 {uploading ? 'Uploading…' : 'Add image'}</Button>
+              <Button variant="ghost" className="btn-sm" onClick={() => setShowLink((v) => !v)}>
+                <span className="icon-label"><Icon name="link" size={13} /> {showLink ? 'Remove link' : 'Add link'}</span>
+              </Button>
+              <Button variant="ghost" className="btn-sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                <span className="icon-label"><Icon name="image" size={13} /> {uploading ? 'Uploading…' : 'Add image'}</span>
+              </Button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickImage} />
             </div>
             <Button className="btn-sm" disabled={busy || uploading || empty} onClick={submit}>{busy ? 'Posting…' : 'Post'}</Button>
@@ -192,17 +198,25 @@ function PostCard({ post, onChange, onDeleted }) {
               onBlocked={() => onDeleted(post.id)}
             />
           )}
-          {post.canDelete && <button className="btn btn-ghost btn-sm" onClick={del} title="Delete">✕</button>}
+          {post.canDelete && <button className="icon-btn icon-btn-danger" onClick={del} title="Delete post" aria-label="Delete post"><Icon name="x" size={15} /></button>}
         </div>
       </div>
 
       {post.text && <p style={{ margin: '0.7rem 0', whiteSpace: 'pre-wrap' }}>{post.text}</p>}
       {post.imageUrl && <img src={imageSrc(post.imageUrl)} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} style={{ width: '100%', borderRadius: 12, maxHeight: 360, objectFit: 'cover' }} />}
-      {link && <a href={link} target="_blank" rel="noreferrer" className="info-block" style={{ display: 'block', marginTop: '0.5rem', wordBreak: 'break-all' }}>🔗 {post.linkUrl}</a>}
+      {link && (
+        <a href={link} target="_blank" rel="noreferrer" className="info-block" style={{ display: 'block', marginTop: '0.5rem', wordBreak: 'break-all' }}>
+          <span className="icon-label"><Icon name="link" size={13} /> {post.linkUrl}</span>
+        </a>
+      )}
 
       <div className="row" style={{ marginTop: '0.7rem', gap: '1rem' }}>
-        <button className="btn btn-ghost btn-sm" onClick={like} aria-pressed={post.likedByMe}>{post.likedByMe ? '❤️' : '🤍'} {post.likeCount > 0 ? post.likeCount : ''} Like</button>
-        <button className="btn btn-ghost btn-sm" onClick={() => setShowComments((v) => !v)}>💬 {post.commentCount > 0 ? post.commentCount : ''} Comment</button>
+        <button className={`btn btn-ghost btn-sm like-btn ${post.likedByMe ? 'on' : ''}`} onClick={like} aria-pressed={post.likedByMe}>
+          <span className="icon-label"><Icon name="heart" size={14} /> {post.likeCount > 0 ? post.likeCount : ''} Like</span>
+        </button>
+        <button className="btn btn-ghost btn-sm" onClick={() => setShowComments((v) => !v)}>
+          <span className="icon-label"><Icon name="message-circle" size={14} /> {post.commentCount > 0 ? post.commentCount : ''} Comment</span>
+        </button>
       </div>
 
       {showComments && (
