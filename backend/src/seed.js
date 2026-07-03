@@ -342,8 +342,22 @@ export const publications = [
     '2025.0002',
     2025,
     'We evaluate sub-3B parameter models on GSM8K-style problems and analyze failure modes.',
-    { keywords: ['language models', 'mathematical reasoning', 'benchmarking'], articleType: 'Analysis', citations: 6, altmetric: 27 }
+    { keywords: ['language models', 'mathematical reasoning', 'benchmarking'], articleType: 'Analysis', citations: 6, altmetric: 27, issue: 2, publishedAt: '2025-08-20', pages: '15–29' }
   ),
+];
+
+// ---------------------------------------------------------------------------
+// Journal issue lifecycle (Track 2)
+// ---------------------------------------------------------------------------
+// First-class volume/issue records. Exactly one issue is "open" at a time —
+// that is the issue newly published papers land in. `year` is the calendar
+// year the issue was opened in (drives the new-volume-per-year rule).
+// The seeded publications above are distributed to match: Vol 1 Issue 1 and
+// Vol 1 Issue 2 each have a paper, so their tables of contents are non-empty.
+export const journalIssues = [
+  { volume: 1, issue: 1, status: 'closed', year: 2025, publishedAt: '2025-03-31', editorial: 'Our inaugural issue: student research with real methods and real data.' },
+  { volume: 1, issue: 2, status: 'closed', year: 2025, publishedAt: '2025-09-30', editorial: 'Issue 2 rounds out Volume 1 with new work across our subject areas.' },
+  { volume: 2, issue: 1, status: 'open', year: 2026, publishedAt: null, editorial: '' },
 ];
 
 // ---------------------------------------------------------------------------

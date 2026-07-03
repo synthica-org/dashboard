@@ -25,6 +25,7 @@ import { sendEmail, emailEnabled, welcomeEmail, actionEmail } from './src/email.
 import { verifyGoogleIdToken, googleEnabled, googleClientId } from './src/google.js';
 import { CATEGORIES, EDITOR_ROLES } from './src/domain.js';
 import { sendWeeklyDigests, maybeSendWeekly } from './src/digest.js';
+import { citationFormats, crossrefBatchXml } from './src/doi.js';
 import { ogCardPng, sharePageHtml } from './src/og.js';
 import { uploadMiddleware, publicUrl, UPLOAD_DIR } from './src/uploads.js';
 
@@ -583,7 +584,8 @@ app.get('/api/journal/rss', wrap((_req, res) => {
 app.get('/api/journal/publications/:id', wrap((req, res) => {
   const pub = store.getPublication(req.params.id);
   if (!pub) return res.status(404).json({ error: 'Publication not found' });
-  res.json(pub);
+  // Ready-to-copy citations ride along so article pages can offer "Cite this".
+  res.json({ ...pub, citation: citationFormats(pub) });
 }));
 
 // Journal home + volumes/issues browse (public, lightly cached at the edge/browser).
@@ -592,6 +594,17 @@ app.get('/api/journal/overview', wrap((_req, res) => { publicCache(res); res.jso
 app.get('/api/journal/volumes', wrap((_req, res) => { publicCache(res); res.json(store.listVolumes()); }));
 app.get('/api/journal/competitions', wrap((_req, res) => { publicCache(res); res.json(store.listCompetitions()); }));
 app.get('/api/journal/issue/:volume/:issue', wrap((req, res) => { publicCache(res); res.json(store.issueContents(req.params.volume, req.params.issue)); }));
+
+// Journal masthead + issue lifecycle (public: the standalone journal site and
+// indexers read these; issues are first-class records with an open/closed state).
+app.get('/api/journal/meta', wrap((_req, res) => { publicCache(res); res.json(store.journalMeta()); }));
+app.get('/api/journal/issues', wrap((_req, res) => { publicCache(res); res.json(store.listJournalIssues()); }));
+app.get('/api/journal/issues/:volume/:issue', wrap((req, res) => {
+  publicCache(res);
+  const detail = store.journalIssueDetail(req.params.volume, req.params.issue);
+  if (!detail) return res.status(404).json({ error: 'Issue not found' });
+  res.json(detail);
+}));
 
 // Full article page (hero) — public; if a token is present we resolve the viewer
 // so an author/staff sees the "tag accounts" controls.
@@ -728,6 +741,31 @@ app.post('/api/editor/director/emailed', requireAuth, editorOnly, directorOnly, 
 app.post('/api/editor/director/publish', requireAuth, editorOnly, directorOnly, wrap((req, res) => {
   const { paperId, doiSuffix, volume, issue, pages } = req.body || {};
   res.json(store.publishToJournal({ paperId, doiSuffix, volume, issue, pages }));
+}));
+
+// Issue lifecycle: close the open issue (stamps its date, opens the next one)
+// and re-file a published article into another existing issue.
+app.post('/api/editor/director/issues/close', requireAuth, editorOnly, directorOnly, wrap((req, res) => {
+  const { editorial, at } = req.body || {};
+  res.json(store.closeOpenIssue({ editorial, at }));
+}));
+
+app.post('/api/editor/director/issues/move', requireAuth, editorOnly, directorOnly, wrap((req, res) => {
+  const { publicationId, volume, issue } = req.body || {};
+  res.json(store.moveArticleToIssue({ publicationId, volume, issue }));
+}));
+
+// Crossref journal deposit XML for one issue — the Director downloads this file
+// and uploads it at doi.crossref.org so the issue's DOIs resolve publicly.
+app.get('/api/editor/director/crossref.xml', requireAuth, editorOnly, directorOnly, wrap((req, res) => {
+  const volume = Number(req.query.volume), issue = Number(req.query.issue);
+  if (!volume || !issue) return res.status(400).json({ error: 'volume and issue query params are required' });
+  const rec = store.getJournalIssue(volume, issue);
+  if (!rec) return res.status(404).json({ error: 'Issue not found' });
+  const articles = store.listPublications().filter((p) => (p.volume || 1) === volume && (p.issue || 1) === issue);
+  res.set('Content-Type', 'application/xml');
+  res.set('Content-Disposition', `attachment; filename="synthica-crossref-v${volume}-i${issue}.xml"`);
+  res.send(crossrefBatchXml({ issue: rec, articles }));
 }));
 
 app.get('/api/editor/director/workload', requireAuth, editorOnly, directorOnly, wrap((_req, res) => {

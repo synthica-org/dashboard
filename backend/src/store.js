@@ -12,7 +12,7 @@ import { verifyPassword, hashPassword } from './passwords.js';
 import { safeUrl } from './url.js';
 import { notifyMove, notifyEvent } from './notify.js';
 import { emailDecision, sendEmail, actionEmail } from './email.js';
-import { registerDoi } from './doi.js';
+import { registerDoi, journalIssn, journalUrl } from './doi.js';
 import { generateSecret as totpGenerateSecret, otpauthUrl as totpOtpauthUrl, verifyTotp } from './totp.js';
 
 // Deep clone the seed so a reset returns to a clean baseline.
@@ -28,6 +28,7 @@ function buildSeed() {
     researchers: clone(seed.researchers),
     submissions: clone(seed.submissions),
     publications: clone(seed.publications),
+    journalIssues: clone(seed.journalIssues || []),
     projects: clone(seed.projects),
     listings: clone(seed.listings),
     applications: clone(seed.applications),
@@ -1242,9 +1243,12 @@ export function publishToJournal({ paperId, doiSuffix, volume, issue, pages }) {
   if (sub.published) throw httpError(409, 'This paper has already been published');
 
   const today = now().slice(0, 10);
+  // New papers land in the currently open issue unless the Director explicitly
+  // overrides volume/issue (issue lifecycle lives further down in this file).
+  const open = openJournalIssue();
   const pub = {
     id: `pub_${db.publications.length + 1}`,
-    doi: `10.55555/synthica.${doiSuffix || `2026.${String(db.publications.length + 1).padStart(4, '0')}`}`,
+    doi: doiSuffix ? `10.55555/synthica.${doiSuffix}` : nextSynthicaDoi(),
     title: sub.title,
     articleType: 'Article',
     authors: [{ name: sub.authorName, affiliation: 'Synthica Research Group' }],
@@ -1256,8 +1260,8 @@ export function publishToJournal({ paperId, doiSuffix, volume, issue, pages }) {
     receivedAt: sub.submittedAt.slice(0, 10),
     acceptedAt: today,
     publishedAt: today,
-    volume: volume || 1,
-    issue: issue || 1,
+    volume: Number(volume) || open.volume,
+    issue: Number(issue) || open.issue,
     pages: pages || '1–1',
     pdfUrl: sub.pdfUrl,
     license: 'CC BY 4.0',
@@ -1729,6 +1733,142 @@ export function issueContents(volume, issue) {
     .sort((a, b) => String(a.pages || '').localeCompare(String(b.pages || ''), undefined, { numeric: true }))
     .map(pubCard);
   return { volume: v, issue: i, count: articles.length, articles };
+}
+
+// --- journal issue lifecycle (first-class volume/issue records) -------------
+// db.journalIssues = [{ volume, issue, status: 'open'|'closed', year,
+// publishedAt, editorial }]. Exactly ONE issue is open at any time — it is the
+// issue publishToJournal() assigns new papers to. Closing it stamps its
+// publishedAt and opens the next (issue+1 within the same calendar year, a new
+// volume once the year rolls over).
+
+// The volume/issue that follows `rec` in `year` (UTC calendar year): the issue
+// number increments within the year the record was opened in; the first issue
+// opened in a later year starts a new volume at Issue 1.
+const nextIssueNumber = (rec, year) =>
+  !rec ? { volume: 1, issue: 1 }
+  : (rec.year || year) === year ? { volume: rec.volume, issue: rec.issue + 1 }
+  : { volume: rec.volume + 1, issue: 1 };
+
+// Make sure the collection exists and holds exactly one open issue (creates
+// Vol 1, Issue 1 lazily on an empty database, or continues after the newest
+// closed issue if a provider snapshot lost the open one).
+function ensureJournalIssues() {
+  if (!Array.isArray(db.journalIssues)) db.journalIssues = [];
+  if (!db.journalIssues.some((x) => x.status === 'open')) {
+    const latest = [...db.journalIssues].sort((a, b) => a.volume - b.volume || a.issue - b.issue).pop();
+    const year = new Date().getUTCFullYear();
+    db.journalIssues.push({ ...nextIssueNumber(latest, year), status: 'open', year, publishedAt: null, editorial: '' });
+  }
+  return db.journalIssues;
+}
+
+// The issue new publications land in (always exists).
+export function openJournalIssue() {
+  return ensureJournalIssues().find((x) => x.status === 'open');
+}
+
+// Raw issue record, or null (used by routes to 404 on unknown volume/issue).
+export function getJournalIssue(volume, issue) {
+  const v = Number(volume), i = Number(issue);
+  return ensureJournalIssues().find((x) => x.volume === v && x.issue === i) || null;
+}
+
+// Article tallies per "volume:issue", computed in one pass over the archive so
+// listing N issues doesn't rescan the publications N times.
+function articleCounts() {
+  const counts = new Map();
+  for (const p of listPublications()) {
+    const key = `${p.volume || 1}:${p.issue || 1}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return counts;
+}
+
+// Public shape for one issue row (article counts come from the publications).
+const issueRow = (x, counts = articleCounts()) => ({
+  volume: x.volume,
+  issue: x.issue,
+  status: x.status,
+  publishedAt: x.publishedAt || null,
+  articleCount: counts.get(`${x.volume}:${x.issue}`) || 0,
+  editorial: x.editorial || '',
+});
+
+// Every issue, newest first — the journal site's archive index.
+export function listJournalIssues() {
+  const counts = articleCounts();
+  return ensureJournalIssues()
+    .slice()
+    .sort((a, b) => b.volume - a.volume || b.issue - a.issue)
+    .map((x) => issueRow(x, counts));
+}
+
+// One issue + its full table of contents (reuses issueContents for the cards).
+export function journalIssueDetail(volume, issue) {
+  const rec = getJournalIssue(volume, issue);
+  if (!rec) return null;
+  return {
+    volume: rec.volume,
+    issue: rec.issue,
+    status: rec.status,
+    publishedAt: rec.publishedAt || null,
+    editorial: rec.editorial || '',
+    articles: issueContents(rec.volume, rec.issue).articles,
+  };
+}
+
+// Journal-level metadata (ISSN etc.) the public journal site + indexers read.
+// ISSN/journal-URL resolution is shared with doi.js so citations, Crossref
+// deposits, and this masthead can never disagree.
+export function journalMeta() {
+  const open = openJournalIssue();
+  return {
+    title: 'Synthica Journal',
+    issn: journalIssn() || 'pending',
+    publisher: 'Synthica',
+    frequency: 'Quarterly',
+    journalUrl: journalUrl(),
+    dashboardUrl: (process.env.FRONTEND_URL || 'https://app.synthica.org').replace(/\/$/, ''),
+    currentVolume: open.volume,
+    currentIssue: open.issue,
+  };
+}
+
+// Director closes the open issue: stamp its publication date and open the next
+// one. Rule: issue numbers increment within a calendar year; the first issue
+// opened in a new year starts a new volume at Issue 1. `at` (ISO date) lets the
+// Director backdate the close; it defaults to now and also decides "what year
+// is it" for the volume rollover.
+export function closeOpenIssue({ editorial, at } = {}) {
+  const open = openJournalIssue();
+  const when = at ? new Date(at) : new Date();
+  if (Number.isNaN(when.getTime())) throw httpError(400, 'Invalid close date');
+  open.status = 'closed';
+  open.publishedAt = when.toISOString().slice(0, 10);
+  if (editorial !== undefined) open.editorial = String(editorial || '').slice(0, 2000);
+  // UTC year, so the rollover agrees with the UTC publishedAt stamp above.
+  const year = when.getUTCFullYear();
+  const next = nextIssueNumber(open, year);
+  db.journalIssues.push({ ...next, status: 'open', year, publishedAt: null, editorial: '' });
+  recordAudit({ name: 'Director' }, 'close_issue', `Closed Vol. ${open.volume} Issue ${open.issue}; opened Vol. ${next.volume} Issue ${next.issue}`);
+  schedulePersist();
+  const counts = articleCounts();
+  return { closed: issueRow(open, counts), opened: issueRow(openJournalIssue(), counts) };
+}
+
+// Director moves a published article into another (existing) issue — e.g. to
+// pull a paper forward into the open issue or fix a mis-filed one.
+export function moveArticleToIssue({ publicationId, volume, issue }) {
+  const pub = getPublication(publicationId);
+  if (!pub) throw httpError(404, 'Publication not found');
+  const target = getJournalIssue(volume, issue);
+  if (!target) throw httpError(404, `No such issue: Vol. ${volume} Issue ${issue}`);
+  pub.volume = target.volume;
+  pub.issue = target.issue;
+  recordAudit({ name: 'Director' }, 'move_article', `"${pub.title}" (${pub.doi}) → Vol. ${target.volume} Issue ${target.issue}`);
+  schedulePersist();
+  return pub;
 }
 
 // --- preprint server (Phase 3) ---------------------------------------------
