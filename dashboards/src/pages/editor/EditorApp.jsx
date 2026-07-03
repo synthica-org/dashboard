@@ -1,7 +1,9 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from '../../components/Layout.jsx';
+import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
-import EditorDashboard from './EditorDashboard.jsx';
+import EditorDashboard, { QUEUE_COUNT_EVENT } from './EditorDashboard.jsx';
 import DirectorDashboard from './DirectorDashboard.jsx';
 import Admin from './Admin.jsx';
 import Email from './Email.jsx';
@@ -29,9 +31,30 @@ export default function EditorApp() {
   // Auditors and the platform Admin have no personal review queue.
   const hasQueue = !isAuditor && !isSuperAdmin;
   const queue = QUEUE_NAV[user?.role] || { label: 'My queue', icon: 'inbox' };
+  const { pathname } = useLocation();
+  const [queueCount, setQueueCount] = useState(0);
+
+  // Nav badge: how many papers sit in this editor's queue. While the queue
+  // page is mounted, EditorDashboard broadcasts fresh counts (its poll + every
+  // decision) — listen for those.
+  useEffect(() => {
+    if (!hasQueue) return undefined;
+    const onCount = (e) => setQueueCount(e.detail ?? 0);
+    window.addEventListener(QUEUE_COUNT_EVENT, onCount);
+    return () => window.removeEventListener(QUEUE_COUNT_EVENT, onCount);
+  }, [hasQueue]);
+
+  // Elsewhere, one light fetch per route change keeps the badge current
+  // ('/editor' is skipped — the dashboard's own fetch covers it). No polling.
+  useEffect(() => {
+    if (!hasQueue || pathname === '/editor') return undefined;
+    let on = true;
+    api.editorPapers().then((d) => { if (on) setQueueCount(d.inbox?.length ?? 0); }).catch(() => {});
+    return () => { on = false; };
+  }, [hasQueue, pathname]);
 
   const nav = [];
-  if (hasQueue) nav.push({ to: '/editor', label: queue.label, icon: queue.icon, end: true });
+  if (hasQueue) nav.push({ to: '/editor', label: queue.label, icon: queue.icon, end: true, badge: queueCount });
   if (isDirector) nav.push({ to: '/editor/director', label: 'Director Desk', icon: 'folder-open' });
   if (isAdmin) nav.push({ to: '/editor/admin', label: 'Admin', icon: 'settings' });
   nav.push({ to: '/editor/email', label: 'Send Email', icon: 'mail' });

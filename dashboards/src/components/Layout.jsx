@@ -129,6 +129,12 @@ export default function Layout({ children, nav = [] }) {
               >
                 {item.icon && <span className="sidebar-ico" aria-hidden="true"><Icon name={item.icon} size={18} /></span>}
                 <span className="sidebar-label">{item.label}</span>
+                {/* Optional numeric count (e.g. editor queue size); hidden at 0. */}
+                {item.badge > 0 && (
+                  <span className="badge badge-blue" style={{ marginLeft: 'auto', flex: 'none' }} aria-label={`${item.badge} waiting`}>
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             )
           ))}
