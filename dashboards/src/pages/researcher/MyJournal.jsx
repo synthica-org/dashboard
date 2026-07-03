@@ -2,7 +2,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../api.js';
 import { Card, Badge, Button, Field, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/toast.jsx';
+import Icon from '../../components/Icon.jsx';
 import UploadButton from '../../components/UploadButton.jsx';
+import { safeHref } from '../../url.js';
 
 const CATEGORIES = ['Biology', 'Chemistry', 'Physics', 'Mathematics', 'Computer Science', 'Humanities', 'Economics', 'Psychology'];
 
@@ -19,12 +21,27 @@ const PIPELINE = [
 ];
 const STAGE_INDEX = Object.fromEntries(PIPELINE.map((s, i) => [s.key, i]));
 
+// The Associate stage runs at most this many revision rounds (backend
+// ASSOCIATE_TOTAL_ROUNDS) before the paper moves to the Senior final check.
+const ASSOCIATE_ROUNDS = 2;
+
+// Which Associate revision round the paper is currently in (1-based, capped).
+// `associateRounds` counts *completed* rounds; older backends may not send it,
+// so fall back to counting uploaded revisions (v1 is the initial submission).
+function currentAssociateRound(sub) {
+  const done = typeof sub.associateRounds === 'number'
+    ? sub.associateRounds
+    : Math.max(0, (sub.revisions?.length || 1) - 1);
+  return Math.min(done + 1, ASSOCIATE_ROUNDS);
+}
+
 // Researchers submit papers to the journal, track each one through the
 // editorial pipeline, upload revisions, and self-archive past papers.
 export default function MyJournal() {
   const toast = useToast();
   const [subs, setSubs] = useState(null); // null = loading
   const [pubs, setPubs] = useState(null);
+  const [meta, setMeta] = useState(null); // { journalUrl, … } when the backend exposes it
   const [error, setError] = useState('');
 
   const load = useCallback(() => {
@@ -32,6 +49,14 @@ export default function MyJournal() {
     api.myPublications().then(setPubs).catch(() => setPubs([]));
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  // Optional journal-site metadata: older backends 404 here, in which case we
+  // simply don't render "View in the journal" links.
+  useEffect(() => {
+    let alive = true;
+    api.journalMeta().then((m) => { if (alive && m) setMeta(m); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   if (subs === null || pubs === null) return <div className="page-loading">Loading your journal…</div>;
 
@@ -52,9 +77,22 @@ export default function MyJournal() {
             <EmptyState>Nothing submitted yet — send your first paper and track it here.</EmptyState>
           ) : (
             <div className="stack">
-              {subs.map((s) => (
-                <SubmissionCard key={s.id} sub={s} onChange={() => { load(); toast.success('Revision uploaded'); }} />
-              ))}
+              {subs.map((s) => {
+                // The journal publication for this submission. A self-archived
+                // copy can share the DOI but lacks volume/issue, so prefer the
+                // match that carries the issue details.
+                const matches = s.doi ? pubs.filter((p) => p.doi === s.doi) : [];
+                const pub = matches.find((p) => p.volume != null && p.issue != null) || matches[0] || null;
+                return (
+                  <SubmissionCard
+                    key={s.id}
+                    sub={s}
+                    pub={pub}
+                    journalUrl={safeHref(meta?.journalUrl)}
+                    onChange={() => { load(); toast.success('Revision uploaded'); }}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -123,15 +161,72 @@ function SubmitForm({ onSubmitted }) {
   );
 }
 
+// One plain-language line telling the author what is happening with their
+// paper right now — and what has to happen for it to move forward.
+function StageNote({ sub }) {
+  const round = currentAssociateRound(sub);
+  const NOTES = {
+    review: { icon: 'eye', text: 'Two Reviews Editors are reading your paper — both must approve for it to advance.' },
+    senior_screen: { icon: 'search', text: 'Both reviewers approved — a Senior Editor is now screening your paper before revisions begin.' },
+    associate: {
+      icon: 'pen',
+      text: `You're working revisions with your Associate Editor — round ${round} of ${ASSOCIATE_ROUNDS}.${sub.revisionRequested ? ' They’ve asked for a revision — upload it below when it’s ready.' : ''}`,
+    },
+    senior_final: { icon: 'clipboard', text: 'Revisions are done — your Senior Editor is giving the paper its final check.' },
+    chief: { icon: 'flag', text: 'Almost there — the Editor-in-Chief is making the final decision on your paper.' },
+    published: sub.published
+      ? { icon: 'award', text: 'Accepted and published — congratulations.' }
+      : { icon: 'sparkles', text: 'Accepted! The Director is preparing your paper for publication — the DOI and issue details will appear here.' },
+  };
+  const note = NOTES[sub.stage];
+  if (!note) return null;
+  return (
+    <div className="row" style={{ gap: '0.55rem', alignItems: 'center', flexWrap: 'nowrap', marginTop: '0.7rem' }}>
+      <span className="guide-ico" style={{ width: 28, height: 28, borderRadius: 8 }} aria-hidden="true"><Icon name={note.icon} size={15} /></span>
+      <span className="muted" style={{ fontSize: '0.85rem', lineHeight: 1.45 }}>{note.text}</span>
+    </div>
+  );
+}
+
+// Details for a paper the Director has published: volume/issue, the DOI, and a
+// link out to the public journal site (only when the backend tells us its URL).
+function PublishedBlock({ sub, pub, journalUrl }) {
+  const doiUrl = sub.doi ? `https://doi.org/${sub.doi}` : null;
+  const hasIssue = pub && pub.volume != null && pub.issue != null;
+  return (
+    <div className="info-block" style={{ marginTop: '0.7rem', marginBottom: 0 }}>
+      <div className="row" style={{ gap: '0.6rem', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+        <span className="guide-ico" aria-hidden="true"><Icon name="award" size={18} /></span>
+        <div style={{ minWidth: 0 }}>
+          <strong>{hasIssue ? `Published in Vol ${pub.volume} · Issue ${pub.issue}` : 'Published in the Synthica Journal'}</strong>
+          {doiUrl && (
+            <div className="muted" style={{ fontSize: '0.83rem', marginTop: '0.25rem', overflowWrap: 'anywhere' }}>
+              DOI: <a href={doiUrl} target="_blank" rel="noreferrer">{doiUrl}</a>
+            </div>
+          )}
+          {journalUrl && (
+            <div style={{ marginTop: '0.55rem' }}>
+              <Button as="a" href={journalUrl} target="_blank" rel="noreferrer" size="btn-sm" icon="external-link">View in the journal</Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // One submitted paper: live pipeline status + version history + revision upload.
-function SubmissionCard({ sub, onChange }) {
+function SubmissionCard({ sub, pub, journalUrl, onChange }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ url: '', note: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const declined = sub.stage === 'rejected';
-  const published = sub.stage === 'published';
+  // `stage === 'published'` means the Editor-in-Chief accepted the paper;
+  // `sub.published` flips once the Director actually publishes it with a DOI.
+  const accepted = sub.stage === 'published';
+  const isLive = !!sub.published;
   const currentIdx = STAGE_INDEX[sub.stage] ?? 0;
 
   const revise = async () => {
@@ -152,9 +247,11 @@ function SubmissionCard({ sub, onChange }) {
 
   const statusBadge = declined
     ? <Badge tone="red">Declined</Badge>
-    : sub.revisionRequested
-      ? <Badge tone="gold">Revision requested</Badge>
-      : <Badge tone={published ? 'green' : 'blue'}>{sub.stageLabel}</Badge>;
+    : isLive
+      ? <Badge tone="green">Published</Badge>
+      : sub.revisionRequested
+        ? <Badge tone="gold">Revision requested</Badge>
+        : <Badge tone={accepted ? 'green' : 'blue'}>{sub.stageLabel}</Badge>;
 
   return (
     <Card>
@@ -168,23 +265,38 @@ function SubmissionCard({ sub, onChange }) {
 
       {/* pipeline stepper */}
       {declined ? (
-        <div className="info-block" style={{ borderColor: 'var(--border)' }}>
-          <span className="muted" style={{ fontSize: '0.85rem' }}>
-            This paper wasn't accepted this round. Check your email for the editors' feedback — you can revise and resubmit a new version.
-          </span>
+        <div className="info-block" style={{ borderColor: 'var(--border)', marginBottom: 0 }}>
+          <div className="row" style={{ gap: '0.55rem', alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+            <span className="guide-ico" style={{ width: 28, height: 28, borderRadius: 8 }} aria-hidden="true"><Icon name="refresh" size={15} /></span>
+            <span className="muted" style={{ fontSize: '0.85rem', lineHeight: 1.45 }}>
+              This paper wasn't accepted this round — that happens to most researchers, and it isn't the end of the road.
+              The editors' feedback is in your email: take what's useful, revise, and send the new version through the submission form whenever you're ready.
+            </span>
+          </div>
         </div>
       ) : (
-        <ol className="pipeline" aria-label="Editorial pipeline progress">
-          {PIPELINE.map((step, i) => {
-            const state = i < currentIdx ? 'done' : i === currentIdx ? 'current' : 'todo';
-            return (
-              <li key={step.key} className={`pipeline-step ${state}`}>
-                <span className="pipeline-dot">{state === 'done' ? '✓' : i + 1}</span>
-                <span className="pipeline-label">{step.short}</span>
-              </li>
-            );
-          })}
-        </ol>
+        <>
+          <ol className="pipeline" aria-label="Editorial pipeline progress">
+            {PIPELINE.map((step, i) => {
+              // A live (Director-published) paper has finished the whole pipeline,
+              // so its final step renders as done rather than "in progress".
+              const state = i < currentIdx || (i === currentIdx && isLive) ? 'done' : i === currentIdx ? 'current' : 'todo';
+              return (
+                <li key={step.key} className={`pipeline-step ${state}`}>
+                  <span className="pipeline-dot">{state === 'done' ? '✓' : i + 1}</span>
+                  <span className="pipeline-label">{step.short}</span>
+                  {step.key === 'associate' && state === 'current' && (
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--brand-deep)', whiteSpace: 'nowrap' }}>
+                      Round {currentAssociateRound(sub)} of {ASSOCIATE_ROUNDS}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          <StageNote sub={sub} />
+          {isLive && <PublishedBlock sub={sub} pub={pub} journalUrl={journalUrl} />}
+        </>
       )}
 
       {/* version history */}
@@ -201,7 +313,7 @@ function SubmissionCard({ sub, onChange }) {
 
       {error && <div className="login-error" style={{ marginTop: '0.5rem' }}>{error}</div>}
 
-      {!published && (
+      {!accepted && !declined && (
         <div className="row" style={{ marginTop: '0.6rem' }}>
           <Button variant={sub.revisionRequested ? 'primary' : 'ghost'} className="btn-sm" onClick={() => setOpen((o) => !o)}>
             {open ? 'Cancel' : sub.revisionRequested ? 'Upload requested revision' : 'Upload revision'}

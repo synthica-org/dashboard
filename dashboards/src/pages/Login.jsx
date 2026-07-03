@@ -5,7 +5,7 @@ import { api } from '../api.js';
 import { Button, Field } from '../components/ui.jsx';
 import GoogleButton from '../components/GoogleButton.jsx';
 import AuthShell from '../components/AuthShell.jsx';
-import { getDefaultHomePath } from '../views.js';
+import { getDefaultHomePath, canAccessPortal } from '../views.js';
 
 // Emails match the seeded demo accounts (backend/src/seed.js). "Moderator" is the
 // member-facing name for the Auditor role (ROLE_WORKFLOWS §9).
@@ -25,6 +25,17 @@ export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const expired = params.get('expired');
+  // Journal funnel (?from=journal): authors arriving from the public journal
+  // site land on My Journal after signing in instead of their default home.
+  const fromJournal = params.get('from') === 'journal';
+  const ref = params.get('ref') || ''; // carried through to /register untouched
+  const registerQuery = (() => {
+    const q = new URLSearchParams();
+    if (ref) q.set('ref', ref);
+    if (fromJournal) q.set('from', 'journal');
+    const s = q.toString();
+    return s ? `?${s}` : '';
+  })();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +49,10 @@ export default function Login() {
     api.config().then((c) => setDemoEnabled(c.demoLogins !== false)).catch(() => {});
   }, []);
 
-  const goHome = (user) => navigate(getDefaultHomePath(user), { replace: true });
+  const goHome = (user) => navigate(
+    fromJournal && canAccessPortal(user, 'researcher') ? '/researcher/journal' : getDefaultHomePath(user),
+    { replace: true },
+  );
   const fail = (e) => setError(e.message || String(e));
 
   const doLogin = async (e) => {
@@ -113,7 +127,7 @@ export default function Login() {
       {expired && !error && <div className="login-error alert-warning">Your session expired — please sign in again.</div>}
       {error && <div className="login-error">{error}</div>}
 
-      <GoogleButton onSuccess={() => navigate('/', { replace: true })} onError={setError} />
+      <GoogleButton onSuccess={() => navigate(fromJournal ? '/researcher/journal' : '/', { replace: true })} onError={setError} />
       <div className="login-divider"><span>or with email</span></div>
 
       <form onSubmit={doLogin}>
@@ -147,7 +161,7 @@ export default function Login() {
       </form>
 
       <div className="login-hint auth-link-row">
-        Don&apos;t have an account? <Link to="/register">Create one</Link>
+        Don&apos;t have an account? <Link to={`/register${registerQuery}`}>Create one</Link>
       </div>
 
       {demoEnabled && (
