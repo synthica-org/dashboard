@@ -137,6 +137,9 @@ export const api = {
   recordPublicationAccess: (id) => request(`/journal/publications/${encodeURIComponent(id)}/access`, { method: 'POST' }),
   article: (id) => request(`/journal/article/${encodeURIComponent(id)}`),
   journalOverview: () => request('/journal/overview'),
+  // Journal site metadata ({ journalUrl, … }). Optional endpoint — callers
+  // feature-detect it and quietly hide journal links when it 404s.
+  journalMeta: () => request('/journal/meta'),
   journalVolumes: () => request('/journal/volumes'),
   journalCompetitions: () => request('/journal/competitions'),
   journalIssue: (v, i) => request(`/journal/issue/${encodeURIComponent(v)}/${encodeURIComponent(i)}`),
