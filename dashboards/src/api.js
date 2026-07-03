@@ -56,7 +56,9 @@ async function request(path, { method = 'GET', body } = {}, attempt = 0) {
         return new Promise(() => {}); // page is navigating away
       }
     }
-    throw new Error(data.error || `Request failed (${res.status})`);
+    const err = new Error(data.error || `Request failed (${res.status})`);
+    err.status = res.status; // callers can feature-detect (e.g. 404 = endpoint not deployed)
+    throw err;
   }
   return data;
 }
@@ -335,4 +337,37 @@ export const api = {
   setMentorAvailability: (body) => request('/mentor/availability', { method: 'POST', body }),
   removeMentorSlot: (slotId) => request(`/mentor/availability/${slotId}`, { method: 'DELETE' }),
   connectMentorCalendar: (connected) => request('/mentor/calendar-connect', { method: 'POST', body: { connected } }),
+
+  // Journal issue lifecycle (Director desk). These endpoints ship with the
+  // backend issue-lifecycle unit — the Director desk feature-detects their
+  // absence and quietly hides issue management until they exist.
+  journalMeta: () => request('/journal/meta'),
+  journalIssues: () => request('/journal/issues'),
+  journalIssueDetail: (volume, issue) => request(`/journal/issues/${encodeURIComponent(volume)}/${encodeURIComponent(issue)}`),
+  closeCurrentIssue: () => request('/editor/director/issues/close', { method: 'POST' }),
+  moveArticleToIssue: (body) => request('/editor/director/issues/move', { method: 'POST', body }),
+  // Crossref deposit XML for one issue. Raw fetch (not request()) because the
+  // response is an XML file, not JSON — and the Bearer header still has to go
+  // along, so a plain <a href> download won't do.
+  directorCrossrefXml: async ({ volume, issue }) => {
+    const token = getToken();
+    const qs = new URLSearchParams({ volume, issue }).toString();
+    const res = await fetch(`${API_BASE}/api/editor/director/crossref.xml?${qs}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) {
+      // Same expired-session handling as request(): don't leave the user
+      // toasting 401s against a dead token.
+      if (res.status === 401 && token) {
+        clearToken();
+        window.location.assign('/login?expired=1');
+        return new Promise(() => {}); // page is navigating away
+      }
+      const data = await res.json().catch(() => ({}));
+      const err = new Error(data.error || `Download failed (${res.status})`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.blob();
+  },
 };
