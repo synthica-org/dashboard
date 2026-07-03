@@ -1,22 +1,23 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../api.js';
 import { Card, Badge, Button, Field, EmptyState, Pfp } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 
 const PROGRESS_TYPES = {
-  general: '📝 General',
-  member: '👥 Member Activity',
-  event: '📅 Event',
-  recruitment: '🎯 Recruitment',
-  outreach: '🌐 Outreach',
+  general: { icon: 'pen', label: 'General' },
+  member: { icon: 'users', label: 'Member Activity' },
+  event: { icon: 'calendar', label: 'Event' },
+  recruitment: { icon: 'target', label: 'Recruitment' },
+  outreach: { icon: 'globe', label: 'Outreach' },
 };
 
 const TYPE_COLORS = {
   general: 'blue',
   member: 'green',
-  event: 'purple',
-  recruitment: 'orange',
-  outreach: 'teal',
+  event: 'gray',
+  recruitment: 'gold',
+  outreach: 'blue',
 };
 
 export default function Chapter() {
@@ -94,7 +95,10 @@ export default function Chapter() {
   if (showCreate) {
     return (
       <div>
-        <h1 className="page-title">🌍 Create Your Chapter</h1>
+        <h1 className="page-title page-title-ico">
+          <span className="guide-ico" aria-hidden="true"><Icon name="globe" size={20} /></span>
+          Create Your Chapter
+        </h1>
         <p className="page-sub">Start a new Synthica chapter in your area or institution.</p>
         
         <Card>
@@ -141,22 +145,29 @@ export default function Chapter() {
   if (!chapter) {
     return (
       <div>
-        <h1 className="page-title">🌍 Chapter</h1>
-        <EmptyState icon="🌍" message="You are not leading a chapter." />
+        <h1 className="page-title">Chapter</h1>
+        <EmptyState icon="globe">You are not leading a chapter.</EmptyState>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="card-row" style={{ marginBottom: '1.5rem' }}>
-        <div>
-          <h1 className="page-title" style={{ margin: 0 }}>🌍 {chapter.name}</h1>
-          {chapter.location && <p className="muted" style={{ margin: '0.25rem 0 0' }}>📍 {chapter.location}</p>}
+      <div className="card-row" style={{ marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+          <h1 className="page-title page-title-ico" style={{ margin: 0 }}>
+            <span className="guide-ico" aria-hidden="true"><Icon name="globe" size={20} /></span>
+            {chapter.name}
+          </h1>
+          {chapter.location && (
+            <p className="muted icon-label" style={{ margin: '0.25rem 0 0' }}>
+              <Icon name="map-pin" size={13} /> {chapter.location}
+            </p>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Button variant="outline" onClick={() => setShowProgress(true)}>
-            📝 Log Progress
+        <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
+          <Button variant="ghost" onClick={() => setShowProgress(true)}>
+            <span className="icon-label"><Icon name="pen" size={14} /> Log Progress</span>
           </Button>
         </div>
       </div>
@@ -186,7 +197,7 @@ export default function Chapter() {
       {/* Progress Log */}
       {showProgress && (
         <Card style={{ marginBottom: '1.5rem', border: '2px solid var(--brand)' }}>
-          <h3>📝 Log Your Progress</h3>
+          <h3 className="icon-label"><Icon name="pen" size={16} /> Log Your Progress</h3>
           <form onSubmit={handleAddProgress}>
             <Field label="What did you accomplish? *" required>
               <input
@@ -213,8 +224,8 @@ export default function Chapter() {
                 onChange={(e) => setProgressForm({ ...progressForm, type: e.target.value })}
                 style={{ width: '100%' }}
               >
-                {Object.entries(PROGRESS_TYPES).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
+                {Object.entries(PROGRESS_TYPES).map(([value, t]) => (
+                  <option key={value} value={value}>{t.label}</option>
                 ))}
               </select>
             </Field>
@@ -233,15 +244,15 @@ export default function Chapter() {
       {/* Progress Timeline */}
       {progress.length > 0 ? (
         <Card>
-          <h3 style={{ marginTop: 0 }}>📊 Progress Timeline</h3>
+          <h3 className="icon-label" style={{ marginTop: 0 }}><Icon name="trending-up" size={16} /> Progress Timeline</h3>
           <div className="stack">
             {progress.map((p) => (
               <div key={p.id} className="info-block" style={{ borderLeft: '3px solid var(--brand)', paddingLeft: '1rem' }}>
-                <div className="card-row">
-                  <div>
+                <div className="card-row" style={{ flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 150px', minWidth: 0 }}>
                     <strong>{p.title}</strong>
                     <Badge tone={TYPE_COLORS[p.type] || 'blue'} style={{ marginLeft: '0.5rem' }}>
-                      {PROGRESS_TYPES[p.type] || p.type}
+                      <Icon name={PROGRESS_TYPES[p.type]?.icon || 'pen'} size={11} /> {PROGRESS_TYPES[p.type]?.label || p.type}
                     </Badge>
                   </div>
                   <span className="muted" style={{ fontSize: '0.78rem' }}>
@@ -259,21 +270,22 @@ export default function Chapter() {
         </Card>
       ) : (
         <Card>
-          <EmptyState 
-            icon="📊" 
-            message="No progress entries yet. Start logging your chapter building activities!" 
-          />
-          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-            <Button variant="primary" onClick={() => setShowProgress(true)}>
-              📝 Log Your First Activity
-            </Button>
-          </div>
+          <EmptyState
+            icon="trending-up"
+            action={(
+              <Button variant="primary" onClick={() => setShowProgress(true)}>
+                <span className="icon-label"><Icon name="pen" size={14} /> Log Your First Activity</span>
+              </Button>
+            )}
+          >
+            No progress entries yet. Start logging your chapter building activities!
+          </EmptyState>
         </Card>
       )}
 
       {/* Members Section */}
       <Card style={{ marginTop: '1.5rem' }}>
-        <h3 style={{ marginTop: 0 }}>👥 Chapter Members ({chapter.members?.length || 0})</h3>
+        <h3 className="icon-label" style={{ marginTop: 0 }}><Icon name="users" size={16} /> Chapter Members ({chapter.members?.length || 0})</h3>
         {chapter.members && chapter.members.length > 0 ? (
           <div className="stack">
             {chapter.members.map((m) => (
@@ -302,14 +314,14 @@ export default function Chapter() {
             ))}
           </div>
         ) : (
-          <EmptyState icon="👥" message="No members yet. Start by onboarding your first member!" />
+          <EmptyState icon="users">No members yet. Start by onboarding your first member!</EmptyState>
         )}
       </Card>
 
       {/* Announcements */}
       {chapter.announcements && chapter.announcements.length > 0 && (
         <Card style={{ marginTop: '1.5rem' }}>
-          <h3 style={{ marginTop: 0 }}>📣 Announcements</h3>
+          <h3 className="icon-label" style={{ marginTop: 0 }}><Icon name="megaphone" size={16} /> Announcements</h3>
           <div className="stack">
             {chapter.announcements.map((a) => (
               <div key={a.id || a.title} className="info-block">

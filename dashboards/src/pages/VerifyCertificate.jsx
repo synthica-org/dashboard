@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
+import Icon from '../components/Icon.jsx';
 
 // Public certificate verification — no login required. A code can be typed in,
 // or passed via ?code=SYN-XXXX-XXXX so a certificate's "Verify" link resolves
@@ -73,8 +74,10 @@ export default function VerifyCertificate() {
           <div className="info-block" style={{ marginTop: '1rem', textAlign: 'left' }}>
             {result.valid ? (
               <>
-                <div style={{ fontSize: '1.5rem' }}>✅</div>
-                <strong style={{ fontSize: '1.05rem' }}>Genuine certificate</strong>
+                <span className="guide-ico guide-ico-success" aria-hidden="true" style={{ marginBottom: '0.35rem' }}>
+                  <Icon name="check-circle" size={19} />
+                </span>
+                <strong style={{ display: 'block', fontSize: '1.05rem' }}>Genuine certificate</strong>
                 <p style={{ margin: '0.4rem 0 0' }}>
                   Issued to <strong>{result.name}</strong>
                 </p>
@@ -85,8 +88,10 @@ export default function VerifyCertificate() {
               </>
             ) : (
               <>
-                <div style={{ fontSize: '1.5rem' }}>⚠️</div>
-                <strong style={{ fontSize: '1.05rem' }}>No match found</strong>
+                <span className="guide-ico guide-ico-danger" aria-hidden="true" style={{ marginBottom: '0.35rem' }}>
+                  <Icon name="alert" size={19} />
+                </span>
+                <strong style={{ display: 'block', fontSize: '1.05rem' }}>No match found</strong>
                 <p className="muted" style={{ margin: '0.4rem 0 0' }}>
                   We couldn’t find a certificate with that code. Double-check it and try again.
                 </p>

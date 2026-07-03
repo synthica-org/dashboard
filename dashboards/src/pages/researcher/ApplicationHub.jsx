@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Card, Badge, Button, Field, EmptyState } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 
 // Role-specific application forms. `key` is the question label stored in answers.
@@ -134,9 +135,9 @@ export default function ApplicationHub() {
           <p className="muted" style={{ marginBottom: '0.75rem' }}>{ROLE_BLURB[role]}</p>
 
           {alreadyHasRole ? (
-            <div className="info-block">✅ You already hold the <strong>{role}</strong> role.</div>
+            <div className="info-block icon-label"><Icon name="check-circle" size={14} /> <span>You already hold the <strong>{role}</strong> role.</span></div>
           ) : pendingForRole ? (
-            <div className="info-block">⏳ Your {role} application is under review — we'll notify you when there's a decision.</div>
+            <div className="info-block icon-label"><Icon name="clock" size={14} /> <span>Your {role} application is under review — we'll notify you when there's a decision.</span></div>
           ) : (
             <form onSubmit={submit}>
               {fields.map((f) => (

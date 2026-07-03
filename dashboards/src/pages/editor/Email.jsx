@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../api.js';
 import { Card, Button, Field } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 
 // Send direct emails to researchers or all members
@@ -43,8 +44,8 @@ export default function Email() {
 
       <Card>
         {cfg && cfg.emailConfigured === false && (
-          <p style={{ marginTop: 0, color: '#92400e', background: '#fffbeb', padding: '0.5rem', borderRadius: '6px' }}>
-            ⚠️ Email delivery isn't configured — emails will be logged only.
+          <p className="callout-warn" style={{ marginTop: 0 }}>
+            <Icon name="alert" size={15} /> <span>Email delivery isn't configured — emails will be logged only.</span>
           </p>
         )}
         <form onSubmit={send}>
