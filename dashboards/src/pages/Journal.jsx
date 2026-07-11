@@ -53,12 +53,16 @@ export default function Journal() {
                 </section>
               )}
 
-              <section className="jr-section">
-                <div className="jr-sec-head"><h2>Latest articles</h2><Link to="/archive" className="jr-more">All articles →</Link></div>
-                <div className="jr-toc">
-                  {(d.recent || []).map((p) => <ArticleRow key={p.id} p={p} />)}
-                </div>
-              </section>
+              {/* The hero already shows the featured article — don't repeat it here.
+                  ("Current issue" keeps it: that's a factual table of contents.) */}
+              {(d.recent || []).filter((p) => p.id !== d.featured?.id).length > 0 && (
+                <section className="jr-section">
+                  <div className="jr-sec-head"><h2>Latest articles</h2><Link to="/archive" className="jr-more">All articles →</Link></div>
+                  <div className="jr-toc">
+                    {(d.recent || []).filter((p) => p.id !== d.featured?.id).map((p) => <ArticleRow key={p.id} p={p} />)}
+                  </div>
+                </section>
+              )}
             </div>
 
             <aside className="jr-side-col">

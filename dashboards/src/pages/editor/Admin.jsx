@@ -12,25 +12,39 @@ export default function Admin() {
   const { user } = useAuth();
   // The platform Admin account has full Director powers here.
   const isDirector = user?.role === 'director' || user?.role === 'admin';
+  // [id, label, component] — drives both the anchor nav and the section wrappers.
+  const sections = [
+    ['analytics', 'Analytics', <AnalyticsCards />],
+    ['people', 'People', <People isDirector={isDirector} />],
+    ['applications', 'Applications', <Applications />],
+    ['programs', 'Programs', <ProgramsPanel isDirector={isDirector} />],
+    ['moderation', 'Moderation', <Moderation />],
+    ['competitions', 'Competitions', <CompetitionsAdmin />],
+    ['events', 'Events', <GlobalEvents />],
+    ['referrals', 'Referrals', <ReferralLeaderboard />],
+    ['archive', 'Published', <Archive />],
+    ['audit', 'Audit log', <AuditLog />],
+    ...(isDirector ? [['integrations', 'Integrations', <Integrations />], ['backup', 'Backup', <Backup />]] : []),
+    ['setup', 'Setup guide', <SetupGuide />],
+  ];
   return (
     <div>
       <h1 className="page-title">Admin</h1>
       <p className="page-sub">Analytics, integrations, applications, audit log, and announcements.</p>
+      <nav className="admin-nav" aria-label="Admin sections">
+        {sections.map(([id, label]) => (
+          <button key={id} type="button" onClick={() => document.getElementById(`adm-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+            {label}
+          </button>
+        ))}
+      </nav>
       <EmailStatusBanner />
       {isDirector && <NewsPoster />}
-      <AnalyticsCards />
-      <People isDirector={isDirector} />
-      <Applications />
-      <ProgramsPanel isDirector={isDirector} />
-      <Moderation />
-      <CompetitionsAdmin />
-      <GlobalEvents />
-      <ReferralLeaderboard />
-      <Archive />
-      <AuditLog />
-      {isDirector && <Integrations />}
-      {isDirector && <Backup />}
-      <SetupGuide />
+      {sections.map(([id, , node]) => (
+        <section key={id} id={`adm-${id}`} className="admin-section">
+          {node}
+        </section>
+      ))}
     </div>
   );
 }
@@ -43,13 +57,29 @@ function EmailStatusBanner() {
   if (!cfg || cfg.emailConfigured !== false) return null;
   return (
     <div className="login-error alert-warning" style={{ marginBottom: '1rem' }}>
-      <span className="icon-label"><Icon name="alert" size={16} /> Email delivery isn't configured (no <code>RESEND_API_KEY</code>). Password-reset and verification emails won't actually send. Set it in your backend env to enable them.</span>
+      {/* Single child span: icon-label is inline-flex, so loose text nodes would wrap as separate flex items. */}
+      <span className="icon-label"><Icon name="alert" size={16} /> <span>Email delivery isn't configured (no <code>RESEND_API_KEY</code>). Password-reset and verification emails won't actually send. Set it in your backend env to enable them.</span></span>
     </div>
   );
 }
 
 const TAGS = ['lead_researcher', 'associate_researcher', 'chapter_leader', 'independent_researcher'];
+// Human labels for the raw enum values — admins shouldn't read snake_case.
+const TAG_LABELS = {
+  lead_researcher: 'Lead Researcher',
+  associate_researcher: 'Associate Researcher',
+  chapter_leader: 'Chapter Leader',
+  independent_researcher: 'Independent Researcher',
+};
 const EDITOR_ROLES = ['reviews', 'associate', 'senior', 'chief', 'director', 'auditor'];
+const EDITOR_ROLE_LABELS = {
+  reviews: 'Reviews Editor',
+  associate: 'Associate Editor',
+  senior: 'Senior Editor',
+  chief: 'Editor-in-Chief',
+  director: 'Director',
+  auditor: 'Auditor',
+};
 const CATS = ['Biology', 'Chemistry', 'Physics', 'Mathematics', 'Computer Science', 'Humanities', 'Economics', 'Psychology'];
 const ARTICLE_TYPES = ['Article', 'Letter', 'Analysis', 'Review', 'Preprint', 'Dataset', 'Conference Paper'];
 
@@ -88,7 +118,7 @@ function People({ isDirector }) {
   // Directors use the full role endpoint; auditors the tags-only one.
   const setTags = (u, body) => (isDirector ? api.adminSetRole(u.id, body) : api.adminSetTags(u.id, body));
   const addTag = (u, tag) =>
-    setTags(u, { addTags: [tag] }).then(() => { toast.success(`${u.name} → ${tag}`); search(q); }).catch((e) => toast.error(e.message));
+    setTags(u, { addTags: [tag] }).then(() => { toast.success(`${u.name} → ${TAG_LABELS[tag] || tag}`); search(q); }).catch((e) => toast.error(e.message));
   const removeTag = (u, tag) =>
     setTags(u, { removeTags: [tag] }).then(() => search(q)).catch((e) => toast.error(e.message));
   const makeEditor = (u, role, category) =>
@@ -108,7 +138,7 @@ function People({ isDirector }) {
           <textarea placeholder="a@x.com, b@y.com, …" value={bulk.emails} onChange={(e) => setBulk({ ...bulk, emails: e.target.value })} />
           <div className="row" style={{ marginTop: '0.5rem' }}>
             <select value={bulk.tag} onChange={(e) => setBulk({ ...bulk, tag: e.target.value })} style={{ width: 'auto' }}>
-              {TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
+              {TAGS.map((t) => <option key={t} value={t}>{TAG_LABELS[t] || t}</option>)}
             </select>
             <Button onClick={runBulk}>Assign to all</Button>
           </div>
@@ -145,7 +175,7 @@ function People({ isDirector }) {
                   )}
                   <div className="row" style={{ marginTop: '0.3rem' }}>
                     {(u.tags || []).map((t) => (
-                      <button key={t} className="badge badge-blue" style={{ cursor: 'pointer', border: 'none' }} title="Click to remove" onClick={() => removeTag(u, t)}>{t} <Icon name="x" size={12} /></button>
+                      <button key={t} className="badge badge-blue" style={{ cursor: 'pointer', border: 'none' }} title="Click to remove" onClick={() => removeTag(u, t)}>{TAG_LABELS[t] || t} <Icon name="x" size={12} /></button>
                     ))}
                   </div>
                 </div>
@@ -153,7 +183,7 @@ function People({ isDirector }) {
               <div className="row" style={{ marginTop: '0.4rem' }}>
                 <select defaultValue="" onChange={(e) => e.target.value && (addTag(u, e.target.value), (e.target.value = ''))} style={{ width: 'auto' }}>
                   <option value="">+ tag…</option>
-                  {TAGS.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {TAGS.map((t) => <option key={t} value={t}>{TAG_LABELS[t] || t}</option>)}
                 </select>
                 {u.recommendation && !(u.tags || []).includes(u.recommendation.tag) && (
                   <Button className="btn-sm" variant="ghost" onClick={() => addTag(u, u.recommendation.tag)}>Apply suggestion</Button>
@@ -186,7 +216,7 @@ function EditorRolePicker({ onPick }) {
     <span className="row">
       <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: 'auto' }}>
         <option value="">make editor…</option>
-        {EDITOR_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+        {EDITOR_ROLES.map((r) => <option key={r} value={r}>{EDITOR_ROLE_LABELS[r] || r}</option>)}
       </select>
       {['reviews', 'associate', 'senior'].includes(role) && (
         <select value={cat} onChange={(e) => setCat(e.target.value)} style={{ width: 'auto' }}>
@@ -914,7 +944,7 @@ function CompetitionsAdmin() {
       </Card>
       <div className="stack">
         {comps.map((c) => (
-          <Card key={c.id}><div className="card-row"><div><strong>{c.title}</strong> {c.deadline && <Badge tone="gray">{c.deadline}</Badge>}</div><button className="btn btn-ghost btn-sm" onClick={() => remove(c.id)}>Delete</button></div></Card>
+          <Card key={c.id}><div className="card-row"><div><strong>{c.title}</strong> {c.deadline && <Badge tone="gray">{c.deadline}</Badge>}</div><Button className="btn-sm" variant="reject" onClick={() => window.confirm(`Delete competition “${c.title}”?`) && remove(c.id)}>Delete</Button></div></Card>
         ))}
       </div>
     </div>
@@ -972,13 +1002,15 @@ function ReferralLeaderboard() {
 // Director-only: suspend/reactivate a member + send them a password-reset email.
 function MemberAdminActions({ u, onChanged }) {
   const toast = useToast();
-  const suspend = () =>
+  const suspend = () => {
+    if (!u.suspended && !window.confirm(`Suspend ${u.name}? They lose access until reactivated.`)) return;
     api.adminSuspend(u.id, !u.suspended).then(() => { toast.success(u.suspended ? 'Reactivated' : 'Suspended'); onChanged(); }).catch((e) => toast.error(e.message));
+  };
   const sendReset = () =>
     api.adminSendReset(u.id).then(() => toast.success('Password-reset email sent')).catch((e) => toast.error(e.message));
   return (
     <>
-      <Button className="btn-sm" variant="ghost" onClick={suspend}>{u.suspended ? 'Reactivate' : 'Suspend'}</Button>
+      <Button className="btn-sm" variant={u.suspended ? 'ghost' : 'reject'} onClick={suspend}>{u.suspended ? 'Reactivate' : 'Suspend'}</Button>
       <Button className="btn-sm" variant="ghost" onClick={sendReset}>Send reset</Button>
     </>
   );
@@ -1079,7 +1111,10 @@ function Moderation() {
   const [posts, setPosts] = useState([]);
   const load = useCallback(() => { api.posts().then(setPosts).catch(() => {}); }, []);
   useEffect(() => { load(); }, [load]);
-  const remove = (id) => api.deletePost(id).then(() => { load(); toast.success('Post removed'); }).catch((e) => toast.error(e.message));
+  const remove = (id) => {
+    if (!window.confirm('Delete this member post? This can\'t be undone.')) return;
+    api.deletePost(id).then(() => { load(); toast.success('Post removed'); }).catch((e) => toast.error(e.message));
+  };
   return (
     <div style={{ marginBottom: '1.5rem' }}>
       <ReportsQueue />
@@ -1092,10 +1127,10 @@ function Moderation() {
             <Card key={p.id}>
               <div className="card-row">
                 <div>
-                  <strong>{p.author?.name}</strong> <span className="muted" style={{ fontSize: '0.78rem' }}>· {new Date(p.at).toLocaleDateString()} · {p.likeCount} likes · {p.commentCount} comments</span>
+                  <strong>{p.author?.name}</strong> <span className="muted" style={{ fontSize: '0.78rem' }}>· {new Date(p.at).toLocaleDateString()} · {p.likeCount} {p.likeCount === 1 ? 'like' : 'likes'} · {p.commentCount} {p.commentCount === 1 ? 'comment' : 'comments'}</span>
                   <div className="muted" style={{ fontSize: '0.85rem' }}>{(p.text || '').slice(0, 160)}{(p.text || '').length > 160 ? '…' : ''}</div>
                 </div>
-                <Button className="btn-sm" variant="ghost" onClick={() => remove(p.id)}>Delete</Button>
+                <Button className="btn-sm" variant="reject" onClick={() => remove(p.id)}>Delete</Button>
               </div>
             </Card>
           ))}

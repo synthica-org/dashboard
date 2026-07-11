@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../../api.js';
-import { useAuth } from '../../../auth.jsx';
+import { useAuth, firstNameOf } from '../../../auth.jsx';
 import { Card, Badge, Button, Field, EmptyState, Pfp } from '../../../components/ui.jsx';
 import Icon from '../../../components/Icon.jsx';
 import { useToast } from '../../../components/toast.jsx';
@@ -33,7 +33,7 @@ export default function LeadHome() {
   return (
     <div>
       <DashboardHero
-        firstName={user.name?.split(' ')?.[0] || 'there'}
+        firstName={firstNameOf(user.name)}
         stats={{ projects: myProjects.length, listings: (listings || []).length, pending: pendingTotal, openSpots }}
         onCreateProject={() => { setCreating('project'); scrollToCreate(); }}
         onCreateListing={() => { setCreating('listing'); scrollToCreate(); }}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useRealtime, useRealtimeStatus } from '../realtime.js';
+import Icon from './Icon.jsx';
 
 // Relative "time ago" for the dropdown ("just now", "5m", "3h", "2d") with the
 // absolute timestamp on hover. Falls back gracefully on a bad/missing date.
@@ -78,7 +79,7 @@ export default function Bell() {
   return (
     <div className="bell" ref={ref}>
       <button className="bell-btn" onClick={toggle} aria-label={label} aria-haspopup="true" aria-expanded={open}>
-        🔔
+        <Icon name="bell" size={18} />
         {unread > 0 && <span className="bell-badge">{unread > 9 ? '9+' : unread}</span>}
       </button>
       {open && (
@@ -91,7 +92,7 @@ export default function Bell() {
           </div>
           {items.length === 0 ? (
             <div className="bell-empty">
-              <div className="bell-empty-icon" aria-hidden="true">🔔</div>
+              <div className="bell-empty-icon" aria-hidden="true"><Icon name="bell" size={24} /></div>
               You're all caught up.
               <div className="bell-empty-sub">New activity shows up here in real time.</div>
             </div>

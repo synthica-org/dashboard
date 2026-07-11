@@ -82,6 +82,16 @@ export default function OnboardingWizard() {
   const total = steps.length;
   const cur = steps[step];
 
+  // Progress reads as a handful of labeled phases, not 12 anonymous dashes —
+  // the perceived cost stays honest ("Profile · Interests · Background").
+  const phaseOf = (key) =>
+    ['welcome', 'name', 'discord', 'institution', 'gpa'].includes(key) ? 'Profile'
+    : ['interests', 'summary'].includes(key) ? 'Interests'
+    : key.startsWith('chapter:') ? 'Chapter'
+    : 'Background';
+  const phases = [...new Set(steps.map((s) => phaseOf(s.key)))];
+  const curPhase = phaseOf(cur.key);
+
   const go = (dir) => {
     setAnim('out');
     setTimeout(() => {
@@ -125,8 +135,15 @@ export default function OnboardingWizard() {
   return (
     <div className="ob-overlay">
       <div className="ob-card">
-        <div className="ob-progress">
-          {steps.map((_, i) => <span key={i} className={i <= step ? 'on' : ''} />)}
+        <div className="ob-progress ob-phases" aria-label={`Section ${phases.indexOf(curPhase) + 1} of ${phases.length}: ${curPhase}`}>
+          {phases.map((p, i) => {
+            const state = i < phases.indexOf(curPhase) ? 'on done' : p === curPhase ? 'on' : '';
+            return (
+              <span key={p} className={state}>
+                <em>{p}</em>
+              </span>
+            );
+          })}
         </div>
         <button type="button" className="ob-skip" onClick={finish}>Skip</button>
 

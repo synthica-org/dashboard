@@ -76,6 +76,14 @@ export function AuthProvider({ children }) {
 
 export const useAuth = () => useContext(AuthContext);
 
+// Greeting-safe first name: skips honorifics so "Dr. Maya Chen" greets as
+// "Maya", not "Dr.". Falls back to the first word, then "there".
+const HONORIFIC = /^(dr|prof|professor|mr|mrs|ms|mx|miss|sir|dame|rev|fr)\.?$/i;
+export function firstNameOf(name) {
+  const words = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return words.find((w) => !HONORIFIC.test(w)) || words[0] || 'there';
+}
+
 // Gate routes behind login. Editors can't reach researcher routes and vice versa.
 export function RequireAuth({ children, kind }) {
   const { user, loading } = useAuth();

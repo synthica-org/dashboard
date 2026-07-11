@@ -28,9 +28,11 @@ export default function EditorApp() {
   const isDirector = user?.role === 'director' || isSuperAdmin;
   const isAuditor = user?.role === 'auditor';
   const isAdmin = isDirector || isAuditor;
-  // Auditors and the platform Admin have no personal review queue.
-  const hasQueue = !isAuditor && !isSuperAdmin;
-  const queue = QUEUE_NAV[user?.role] || { label: 'My queue', icon: 'inbox' };
+  // Only tiered editors (reviews/senior/associate/chief) have a personal
+  // review queue — directors, auditors, and the platform Admin do not, so
+  // they shouldn't get a queue nav item that lands on an empty page.
+  const queue = QUEUE_NAV[user?.role];
+  const hasQueue = Boolean(queue);
   const { pathname } = useLocation();
   const [queueCount, setQueueCount] = useState(0);
 
@@ -58,13 +60,13 @@ export default function EditorApp() {
   if (isDirector) nav.push({ to: '/editor/director', label: 'Director Desk', icon: 'folder-open' });
   if (isAdmin) nav.push({ to: '/editor/admin', label: 'Admin', icon: 'settings' });
   nav.push({ to: '/editor/email', label: 'Send Email', icon: 'mail' });
-  nav.push({ to: '/archive', label: 'Archive', icon: 'archive' });
+  nav.push({ to: '/archive', label: 'Archive', icon: 'archive', external: true });
   nav.push({ to: '/editor/account', label: 'Account', icon: 'user' });
 
   return (
     <Layout nav={nav}>
       <Routes>
-        <Route index element={hasQueue ? <EditorDashboard /> : <Navigate to={isSuperAdmin ? '/editor/director' : '/editor/admin'} replace />} />
+        <Route index element={hasQueue ? <EditorDashboard /> : <Navigate to={isDirector ? '/editor/director' : '/editor/admin'} replace />} />
         {isDirector && <Route path="director" element={<DirectorDashboard />} />}
         {isAdmin && <Route path="admin" element={<Admin />} />}
         <Route path="email" element={<Email />} />

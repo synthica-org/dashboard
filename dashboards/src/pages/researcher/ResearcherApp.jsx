@@ -84,7 +84,7 @@ export default function ResearcherApp() {
     { to: '/researcher/hub', label: 'Research Hub', icon: 'compass', views: ['researcher'] },
     { to: '/researcher/projects', label: 'My Projects', icon: 'folder', views: ['researcher'] },
     { to: '/researcher/groups', label: 'Groups', icon: 'flask', views: ['researcher'] },
-    { to: '/researcher/journal', label: 'Journal', icon: 'book-open', views: ['researcher'] },
+    { to: '/researcher/journal', label: 'Submit a paper', icon: 'book-open', views: ['researcher'] },
     { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['researcher'] },
     { to: '/researcher/drive', label: 'Drive', icon: 'folder-open', views: ['researcher'] },
     { section: 'Discover', views: ['researcher'] },
@@ -108,7 +108,7 @@ export default function ResearcherApp() {
       { section: 'Independent', views: ['independent'] },
       { to: '/researcher/sandbox', label: 'Sandbox', icon: 'flask', views: ['independent'] },
       { to: '/researcher/projects', label: 'My Projects', icon: 'folder', views: ['independent'] },
-      { to: '/researcher/journal', label: 'Journal', icon: 'book-open', views: ['independent'] },
+      { to: '/researcher/journal', label: 'Submit a paper', icon: 'book-open', views: ['independent'] },
       { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['independent'] },
     ] : []),
 
@@ -130,9 +130,12 @@ export default function ResearcherApp() {
     ] : []),
 
     { spacer: true, views: ['*'] },
-    { to: '/journal', label: 'Read Journal', icon: 'books', views: ['*'] },
-    { to: '/preprints', label: 'Preprints', icon: 'file-text', views: ['*'] },
-    { to: '/archive', label: 'Archive', icon: 'archive', views: ['*'] },
+    // These leave the dashboard shell for the public site — labelled as such.
+    { section: 'Public site', views: ['*'] },
+    { to: '/journal', label: 'Synthica Journal', icon: 'books', views: ['*'], external: true },
+    { to: '/preprints', label: 'Preprints', icon: 'file-text', views: ['*'], external: true },
+    { to: '/archive', label: 'Archive', icon: 'archive', views: ['*'], external: true },
+    { spacer: true, views: ['*'] },
     { to: '/researcher/account', label: 'Account', icon: 'user', views: ['*'] },
   ];
 

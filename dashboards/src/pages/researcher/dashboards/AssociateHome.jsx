@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../../api.js';
-import { useAuth } from '../../../auth.jsx';
+import { useAuth, firstNameOf } from '../../../auth.jsx';
 import { Card, Badge, EmptyState } from '../../../components/ui.jsx';
 import Icon from '../../../components/Icon.jsx';
+import StatCard from '../../../components/dashboard/StatCard.jsx';
 import { imageSrc } from '../../../files.js';
 
 // The baseline Member portal home. Every Synthica member is an Associate
@@ -29,20 +30,22 @@ const GUIDE = [
 
 export default function AssociateHome() {
   const { user } = useAuth();
-  const firstName = user?.name?.split(' ')?.[0] || 'there';
+  const firstName = firstNameOf(user?.name);
 
   if (!user) return <div className="page-loading">Loading…</div>;
 
   return (
     <div>
       <DashboardHero firstName={firstName} />
-      <RoleGuide />
+      {/* Live status first — instructions are a dismissible follow-up, not the fold. */}
       <QuickStats />
 
       <div className="grid grid-2" style={{ alignItems: 'start', marginBottom: '2rem' }}>
         <OpenListings />
         <MyApplications />
       </div>
+
+      <RoleGuide />
 
       <MemberProjects />
 
@@ -63,10 +66,10 @@ function DashboardHero({ firstName }) {
         <div className="hero-eyebrow">
           <Icon name="compass" size={13} /> Member portal
         </div>
-        <h1 className="page-title" style={{ color: '#fff', margin: '0.35rem 0 0.4rem' }}>
+        <h1 className="page-title" style={{ margin: '0.35rem 0 0.4rem' }}>
           Welcome, {firstName}
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.92)', margin: 0, maxWidth: '52ch', lineHeight: 1.5 }}>
+        <p style={{ margin: 0, maxWidth: '52ch', lineHeight: 1.5 }}>
           Find projects, join a team, and connect with researchers. As an{' '}
           <strong>Associate Researcher</strong> you can browse the Research Hub, apply to projects and
           groups, and collaborate from My Projects.
@@ -86,12 +89,23 @@ function DashboardHero({ firstName }) {
 
 // --- Role guide --------------------------------------------------------------
 // Plain-language list of what this role can do, each linking to the right page.
+// Dismissible: once a member knows the ropes it shouldn't occupy the home page.
+const GUIDE_DISMISS_KEY = 'synthica.guide.associate.dismissed';
+
 function RoleGuide() {
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem(GUIDE_DISMISS_KEY) === '1');
+  if (dismissed) return null;
   return (
-    <section style={{ marginBottom: '1.75rem' }}>
-      <div className="section-head" style={{ marginBottom: '0.75rem' }}>
-        <div className="section-badge">Associate Researcher</div>
-        <h2 className="section-title">What you can do here</h2>
+    <section style={{ marginBottom: '2rem' }}>
+      <div className="section-head" style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <h2 className="section-title">Getting started</h2>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => { localStorage.setItem(GUIDE_DISMISS_KEY, '1'); setDismissed(true); }}
+        >
+          Dismiss
+        </button>
       </div>
       <div className="grid grid-3">
         {GUIDE.map((g) => (
@@ -137,18 +151,10 @@ function QuickStats() {
   ];
 
   return (
-    <div className="grid grid-3" style={{ marginBottom: '1.75rem' }}>
+    <div className="dash-stat-grid" style={{ marginBottom: '1.75rem' }}>
       {stats.map((s) => (
         <Link key={s.label} to={s.to} style={{ color: 'inherit' }}>
-          <Card>
-            <div className="row" style={{ gap: '0.6rem', alignItems: 'center' }}>
-              <span className="guide-ico guide-ico-lg" aria-hidden="true"><Icon name={s.icon} size={22} /></span>
-              <div>
-                <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--brand-deep)', lineHeight: 1.1 }}>{s.value}</div>
-                <div className="muted" style={{ fontSize: '0.78rem' }}>{s.label}</div>
-              </div>
-            </div>
-          </Card>
+          <StatCard label={s.label} value={s.value} icon={s.icon} className="dash-stat-link" />
         </Link>
       ))}
     </div>
@@ -261,10 +267,7 @@ function MemberProjects() {
   return (
     <section style={{ marginBottom: '2rem' }}>
       <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div className="section-badge">My Projects</div>
-          <h2 className="section-title">Projects you're on</h2>
-        </div>
+        <h2 className="section-title">Projects you're on</h2>
         <Link to="/researcher/projects" className="muted" style={{ fontSize: '0.82rem' }}>View all →</Link>
       </div>
       {!projects ? (

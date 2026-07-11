@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { Card, Badge, Button, EmptyState } from '../../components/ui.jsx';
 import { useAuth } from '../../auth.jsx';
@@ -18,7 +19,7 @@ export const QUEUE_COUNT_EVENT = 'editor-queue-count';
 const TIERS = {
   reviews: {
     title: 'Reviews Editor — screening queue',
-    sub: 'First-pass screening. Two reviews editors read each paper single-blind; it only advances when you BOTH approve.',
+    sub: 'First-pass screening. Two reviews editors read each paper single-blind; it only advances when you both approve.',
     job: [
       'Read the paper and leave feedback (always required).',
       'Approve and add a recommendation, or reject.',
@@ -135,15 +136,21 @@ export default function EditorDashboard() {
 
   if (loading) return <p className="muted">Loading your queue…</p>;
 
-  // Directors / demo accounts have no personal review queue — point them to the desk.
+  // Fallback for roles without a personal queue (EditorApp normally redirects
+  // them before this renders) — offer the places they can act, not a dead end.
   if (!tier) {
     return (
       <div>
         <h1 className="page-title">Editorial overview</h1>
-        <p className="page-sub">Your account isn’t a category editor, so you don’t have a personal review queue.</p>
+        <p className="page-sub">Your role works across the whole pipeline rather than a personal review queue.</p>
         <NewsFeed />
         {CAN_POST_NEWS.includes(user.role) && <NewsPoster />}
-        <EmptyState>Head to the <strong>Director Desk</strong> to email authors and publish accepted papers.</EmptyState>
+        <EmptyState>
+          <div className="row" style={{ justifyContent: 'center', gap: '0.5rem' }}>
+            <Link className="btn btn-primary btn-sm" to="/editor/director">Open the Director Desk</Link>
+            <Link className="btn btn-ghost btn-sm" to="/editor/admin">Go to Admin</Link>
+          </div>
+        </EmptyState>
       </div>
     );
   }

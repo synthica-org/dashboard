@@ -2,11 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "chapter-dashboards",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": ["-lc", "cd /Users/buno/Documents/coding/synthica-org/dashboard/.claude/worktrees/agent-a7cf5abf1d4556e68/dashboards && VITE_API_BASE=http://localhost:4007 exec npx vite --port 5207 --strictPort"],
-      "port": 5207,
-      "autoPort": false
+      "name": "full stack",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "dashboards only",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "dashboards", "run", "dev"],
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }

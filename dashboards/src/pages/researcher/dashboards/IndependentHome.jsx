@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../../api.js';
-import { useAuth } from '../../../auth.jsx';
+import { useAuth, firstNameOf } from '../../../auth.jsx';
 import { Card, Badge, Button, Field, EmptyState, Modal } from '../../../components/ui.jsx';
 import { useToast } from '../../../components/toast.jsx';
 
@@ -31,7 +31,7 @@ export default function IndependentHome() {
   return (
     <div>
       <DashboardHero
-        name={user.name?.split(' ')?.[0] || 'there'}
+        name={firstNameOf(user.name)}
         pending={pending}
         approved={approved}
         projects={(projects || []).length}
@@ -69,10 +69,10 @@ function DashboardHero({ name, pending, approved, projects, onAdd }) {
       <div className="card-row" style={{ alignItems: 'flex-start', gap: '1rem' }}>
         <div style={{ minWidth: 0 }}>
           <div className="hero-eyebrow">Independent researcher</div>
-          <h1 className="page-title" style={{ color: '#fff', margin: '0.4rem 0 0.2rem' }}>
+          <h1 className="page-title" style={{ margin: '0.4rem 0 0.2rem' }}>
             Welcome, {name}
           </h1>
-          <p style={{ margin: 0, opacity: 0.9, maxWidth: '46ch' }}>
+          <p style={{ margin: 0, maxWidth: '46ch' }}>
             Propose and run solo, self-directed projects. Submit a research proposal, get it approved by a moderator, then work through your Pathway from question to draft.
           </p>
         </div>

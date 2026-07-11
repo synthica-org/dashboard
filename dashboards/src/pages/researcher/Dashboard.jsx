@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api.js';
-import { useAuth } from '../../auth.jsx';
+import { useAuth, firstNameOf } from '../../auth.jsx';
 import { Card, Badge, Button, Field, EmptyState, Pfp } from '../../components/ui.jsx';
 import { useToast } from '../../components/toast.jsx';
 import OnboardingWizard from '../../components/OnboardingWizard.jsx';
@@ -18,7 +18,7 @@ const TAG_LABEL = {
 export default function Dashboard() {
   const { user } = useAuth();
   const tags = user?.tags || [];
-  const firstName = user?.name?.split(' ')?.[0] || 'there';
+  const firstName = firstNameOf(user?.name);
 
   if (!user) {
     return <div className="page-loading">Loading…</div>;

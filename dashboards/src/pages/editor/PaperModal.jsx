@@ -170,7 +170,7 @@ export default function PaperModal({ paper, role, onClose, onActed }) {
 
       <PaperInfo paper={paper} showAuthor={showAuthor} />
 
-      <RequestRevision paper={paper} busy={busy} run={run} />
+      <VersionHistory paper={paper} />
 
       <div className="divider" />
 
@@ -179,30 +179,41 @@ export default function PaperModal({ paper, role, onClose, onActed }) {
       {role === 'associate' && <AssociateForm paper={paper} busy={busy} run={run} />}
       {role === 'chief' && <ChiefForm paper={paper} busy={busy} run={run} />}
 
+      {/* Third verb lives with the other two — every action that decides the
+          paper's fate sits in this one zone, not scattered around the modal. */}
+      <RequestRevision paper={paper} busy={busy} run={run} />
+
       <div className="divider" />
       <CommentThread paper={paper} />
     </Modal>
   );
 }
 
-// Ask the author for a revision (emails them + flags the paper).
+// The paper's earlier uploads, kept with the paper info block.
+function VersionHistory({ paper }) {
+  if (!(paper.revisions?.length > 1)) return null;
+  return (
+    <details style={{ marginTop: '0.75rem' }}>
+      <summary className="muted" style={{ cursor: 'pointer' }}>Version history ({paper.revisions.length})</summary>
+      <div className="stack" style={{ marginTop: '0.4rem' }}>
+        {paper.revisions.map((r) => (
+          <div key={r.version} className="muted" style={{ fontSize: '0.8rem' }}>
+            v{r.version} · <a href={r.url} target="_blank" rel="noreferrer">file</a> · {new Date(r.at).toLocaleDateString()}{r.note ? ` — ${r.note}` : ''}
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+// Ask the author for a revision (emails them + flags the paper). Rendered in
+// the decision zone so all three verbs (approve / reject / request changes)
+// sit together.
 function RequestRevision({ paper, busy, run }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
   return (
     <div style={{ marginTop: '0.75rem' }}>
-      {paper.revisions?.length > 1 && (
-        <details style={{ marginBottom: '0.5rem' }}>
-          <summary className="muted" style={{ cursor: 'pointer' }}>Version history ({paper.revisions.length})</summary>
-          <div className="stack" style={{ marginTop: '0.4rem' }}>
-            {paper.revisions.map((r) => (
-              <div key={r.version} className="muted" style={{ fontSize: '0.8rem' }}>
-                v{r.version} · <a href={r.url} target="_blank" rel="noreferrer">file</a> · {new Date(r.at).toLocaleDateString()}{r.note ? ` — ${r.note}` : ''}
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
       {!open ? (
         <Button variant="ghost" className="btn-sm" onClick={() => setOpen(true)}>Request revision from author</Button>
       ) : (

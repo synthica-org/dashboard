@@ -33,10 +33,6 @@ function useTabRevalidate() {
   return rev;
 }
 
-function ThemeToggleSlot() {
-  return <ThemeToggle />;
-}
-
 function navLabelForPath(nav, pathname) {
   const links = nav.filter((n) => n.to);
   const exact = links.find((n) => n.end && pathname === n.to);
@@ -46,7 +42,9 @@ function navLabelForPath(nav, pathname) {
   return match?.label;
 }
 
-// App shell: top bar + role-aware sidebar navigation.
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+
+// App shell: workspace sidebar (on the canvas) + framed content window.
 export default function Layout({ children, nav = [] }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -77,6 +75,25 @@ export default function Layout({ children, nav = [] }) {
     [filteredNav, location.pathname],
   );
 
+  // ⌥1–⌥9 jump to the nth sidebar destination (matches the hint chips).
+  const linkItems = useMemo(() => filteredNav.filter((n) => n.to), [filteredNav]);
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const m = /^Digit([1-9])$/.exec(e.code);
+      if (!m) return;
+      const item = linkItems[Number(m[1]) - 1];
+      if (item) { e.preventDefault(); navigate(item.to); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [linkItems, navigate]);
+
+  const shortcutIndex = (item) => {
+    const i = linkItems.indexOf(item);
+    return i > -1 && i < 9 ? i + 1 : null;
+  };
+
   const onLogout = () => {
     logout();
     navigate('/login');
@@ -92,63 +109,83 @@ export default function Layout({ children, nav = [] }) {
           {sent ? <strong>Verification email sent.</strong> : <button className="link-btn" onClick={resend}>Resend link</button>}
         </div>
       )}
-      <header className="topbar">
-        <button
-          className="nav-toggle"
-          onClick={() => setNavOpen((v) => !v)}
-          aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
-          aria-expanded={navOpen}
-        >
-          <Icon name={navOpen ? 'x' : 'menu'} size={20} />
-        </button>
-        <div className="topbar-brand"><BrandMark size={22} />Synthica</div>
-        <div className="topbar-right">
-          <button className="cmdk-trigger" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))} aria-label="Search">
-            <Icon name="search" size={16} /> <span className="cmdk-hint">⌘K</span>
-          </button>
-          <ThemeToggleSlot />
-          <Bell />
-          <ViewSwitcher onLogout={onLogout} />
-        </div>
-      </header>
       <div className="app-body">
         <div className="nav-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />
         <aside className="sidebar" aria-label="Main navigation">
-          {filteredNav.map((item, i) => (
-            item.spacer ? (
-              <div key={`sp-${i}`} className="sidebar-spacer" />
-            ) : item.section ? (
-              <div key={`sec-${i}`} className="sidebar-section">{item.section}</div>
-            ) : (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={() => setNavOpen(false)}
-                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              >
-                {item.icon && <span className="sidebar-ico" aria-hidden="true"><Icon name={item.icon} size={18} /></span>}
-                <span className="sidebar-label">{item.label}</span>
-                {/* Optional numeric count (e.g. editor queue size); hidden at 0. */}
-                {item.badge > 0 && (
-                  <span className="badge badge-blue" style={{ marginLeft: 'auto', flex: 'none' }} aria-label={`${item.badge} waiting`}>
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
-            )
-          ))}
+          <div className="sidebar-brand"><BrandMark size={18} /><span>Synthica</span></div>
+          <div className="sidebar-workspace">
+            <ViewSwitcher onLogout={onLogout} />
+          </div>
+          <div className="sidebar-nav">
+            {filteredNav.map((item, i) => (
+              item.spacer ? (
+                <div key={`sp-${i}`} className="sidebar-spacer" />
+              ) : item.section ? (
+                <div key={`sec-${i}`} className="sidebar-section">{item.section}</div>
+              ) : (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => setNavOpen(false)}
+                  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+                >
+                  {item.icon && <span className="sidebar-ico" aria-hidden="true"><Icon name={item.icon} size={16} /></span>}
+                  <span className="sidebar-label">{item.label}</span>
+                  {/* Items that leave the dashboard shell for the public site get an explicit cue. */}
+                  {item.external && (
+                    <span className="sidebar-ext" aria-label="opens the public site" title="Opens the public site">
+                      <Icon name="external-link" size={13} />
+                    </span>
+                  )}
+                  {/* Optional numeric count (e.g. editor queue size); hidden at 0. */}
+                  {item.badge > 0 ? (
+                    <span className="badge badge-blue sidebar-badge" aria-label={`${item.badge} waiting`}>
+                      {item.badge}
+                    </span>
+                  ) : shortcutIndex(item) && (
+                    <kbd className="sidebar-kbd" aria-hidden="true">{isMac ? '⌥' : 'Alt'}{shortcutIndex(item)}</kbd>
+                  )}
+                </NavLink>
+              )
+            ))}
+          </div>
         </aside>
-        <main className="content" key={rev}>
-          {activeView && pageLabel && pageLabel !== activeView.label && (
-            <nav className="content-crumb" aria-label="Breadcrumb">
-              <span className="content-crumb-view">{activeView.label}</span>
-              <span className="content-crumb-sep" aria-hidden="true">/</span>
-              <span className="content-crumb-page">{pageLabel}</span>
-            </nav>
-          )}
-          {children}
-        </main>
+        <div className="content-frame">
+          <header className="content-head">
+            <button
+              className="nav-toggle"
+              onClick={() => setNavOpen((v) => !v)}
+              aria-label={navOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={navOpen}
+            >
+              <Icon name={navOpen ? 'x' : 'menu'} size={20} />
+            </button>
+            {activeView && (
+              <nav className="content-crumb" aria-label="Breadcrumb">
+                <span className="content-crumb-view">{activeView.label}</span>
+                {pageLabel && pageLabel.toLowerCase() !== activeView.label.toLowerCase() && (
+                  <>
+                    <span className="content-crumb-sep" aria-hidden="true"><Icon name="chevron-right" size={13} /></span>
+                    <span className="content-crumb-page">{pageLabel}</span>
+                  </>
+                )}
+              </nav>
+            )}
+            <div className="content-head-right">
+              <button className="cmdk-trigger" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))} aria-label="Search">
+                <Icon name="search" size={15} /> <span className="cmdk-label">Search</span> <span className="cmdk-hint">⌘K</span>
+              </button>
+              <ThemeToggle />
+              <Bell />
+            </div>
+          </header>
+          <main className="content" key={rev}>
+            <div className="content-inner">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
       <CommandPalette nav={filteredNav} />
     </div>

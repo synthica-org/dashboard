@@ -25,8 +25,8 @@ export default function JournalVolumes() {
                 <h2 className="jr-vol-title">Volume {v.volume}</h2>
                 <div className="jr-issue-grid">
                   {v.issues.map((is) => (
+                    // No "Vol. N" eyebrow — the card already sits under the volume heading.
                     <Link key={is.issue} to={`/journal/vol/${v.volume}/issue/${is.issue}`} className="jr-issue-card">
-                      <span className="jr-issue-vol">Vol. {v.volume}</span>
                       <span className="jr-issue-no">Issue {is.issue}</span>
                       <span className="jr-issue-count">{is.count} article{is.count === 1 ? '' : 's'}</span>
                     </Link>

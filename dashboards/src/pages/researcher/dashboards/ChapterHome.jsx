@@ -22,8 +22,8 @@ function DashboardHero({ badge, title, subtitle, children }) {
   return (
     <div className="hero-card hero-card--chapter" style={{ marginBottom: '1.5rem' }}>
       <div className="hero-eyebrow">{badge}</div>
-      <h1 className="page-title" style={{ color: '#fff', margin: '0.4rem 0 0.2rem' }}>{title}</h1>
-      {subtitle && <p style={{ margin: 0, opacity: 0.9, maxWidth: '52ch' }}>{subtitle}</p>}
+      <h1 className="page-title" style={{ margin: '0.4rem 0 0.2rem' }}>{title}</h1>
+      {subtitle && <p style={{ margin: 0, maxWidth: '52ch' }}>{subtitle}</p>}
       {children && <div style={{ marginTop: '0.9rem' }}>{children}</div>}
     </div>
   );

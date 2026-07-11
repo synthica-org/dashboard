@@ -16,7 +16,7 @@
   --bg-subtle: #fafafa;
   --bg-muted: #f5f5f5;
   --fg: #0a0a0a;
-  --fg-muted: #737373;
+  --fg-muted: #6b6b6b; /* 4.9:1 even on --bg-muted panels (WCAG AA) */
   --fg-subtle: #a3a3a3;
   --line: #eaeaea;
   --line-strong: #d4d4d4;
@@ -59,7 +59,9 @@
   --ink: var(--fg);
   --heading: var(--fg);
   --body: var(--fg-muted);
-  --body-alt: var(--fg-subtle);
+  /* WCAG: body-alt is used for real copy (.muted, help text, empty states) —
+     it must stay readable. --fg-subtle is reserved for decorative/disabled. */
+  --body-alt: var(--fg-muted);
   --slate: var(--fg-muted);
   --border: var(--line);
   --surface: var(--bg-subtle);
@@ -78,8 +80,9 @@
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
 
   --sky-gradient: linear-gradient(180deg, rgba(37, 137, 237, 0.08) 0%, var(--bg) 42%);
-  --btn-gradient: linear-gradient(135deg, #2589ed 0%, #78b4fb 100%);
-  --btn-gradient-hover: linear-gradient(135deg, #1a6bb5 0%, #5c9eeb 100%);
+  /* Both gradient stops keep white 14px text ≥ 4.5:1 (WCAG AA). */
+  --btn-gradient: linear-gradient(135deg, #1a6bb5 0%, #1d73c6 100%);
+  --btn-gradient-hover: linear-gradient(135deg, #14548c 0%, #1a6bb5 100%);
   --glass-bg: var(--bg);
   --glass-bg-strong: var(--bg);
   --glass-border: 1px solid var(--line);
@@ -120,7 +123,7 @@ html[data-theme='dark'] {
   --ink: var(--fg);
   --heading: var(--fg);
   --body: var(--fg-muted);
-  --body-alt: var(--fg-subtle);
+  --body-alt: var(--fg-muted);
   --slate: var(--fg-muted);
   --border: var(--line);
   --surface: var(--bg-subtle);
@@ -140,22 +143,15 @@ html[data-theme='dark'] {
 }
 
 /* ---------- Base ---------- */
+/* Flat, calm workspace canvas — the content frame supplies the white surface. */
 body {
   font-family: var(--font-sans) !important;
   color: var(--body) !important;
-  background: var(--bg) !important;
-  background-image:
-    radial-gradient(900px 420px at 50% -180px, rgba(120, 180, 251, 0.18), transparent 70%),
-    radial-gradient(circle at 1px 1px, rgba(37, 137, 237, 0.06) 1px, transparent 0) !important;
-  background-size: auto, 24px 24px !important;
-  background-attachment: fixed !important;
+  background: var(--bg-muted) !important;
 }
 
 html[data-theme='dark'] body {
-  background-image:
-    radial-gradient(900px 420px at 50% -180px, rgba(37, 137, 237, 0.22), transparent 70%),
-    radial-gradient(circle at 1px 1px, rgba(120, 180, 251, 0.06) 1px, transparent 0) !important;
-  background-size: auto, 24px 24px !important;
+  background: var(--bg) !important;
 }
 
 :focus-visible {
@@ -167,7 +163,13 @@ a {
   color: var(--accent-muted);
 }
 
-.yellow-text,
+/* Readable amber in light mode (raw gold on white is ~1.4:1); true gold in dark. */
+.yellow-text {
+  color: #a16207 !important;
+}
+html[data-theme='dark'] .yellow-text {
+  color: var(--gold) !important;
+}
 .hero .underline-you,
 .compare-synthica .wordmark-glow {
   color: var(--gold) !important;
@@ -212,10 +214,18 @@ button.btn-primary:hover:not(:disabled),
   box-shadow: 0 6px 18px rgba(37, 137, 237, 0.35) !important;
 }
 
+/* Dark mode: dark text on the light-blue gradient (white fails WCAG there). */
+html[data-theme='dark'] .btn-primary,
+html[data-theme='dark'] button.btn-primary,
+html[data-theme='dark'] a.btn-primary,
+html[data-theme='dark'] .nav-cta {
+  color: #0a0a0a !important;
+}
+
 html[data-theme='dark'] .btn-primary:hover,
 html[data-theme='dark'] .nav-cta:hover {
   background: var(--btn-gradient-hover) !important;
-  color: #fff !important;
+  color: #0a0a0a !important;
 }
 
 .btn-secondary {
@@ -514,36 +524,44 @@ select:focus {
   color: var(--brand-deep) !important;
 }
 
-/* ---------- Dashboard app shell ---------- */
-.topbar {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border-bottom: 1px solid var(--line) !important;
-}
-
-html[data-theme='dark'] .topbar {
-  background: rgba(10, 10, 10, 0.85) !important;
-}
-
+/* ---------- Dashboard app shell (framed workspace) ---------- */
 .topbar-brand::before {
   display: none !important;
-}
-
-.sidebar {
-  background: var(--bg) !important;
-  border-right: 1px solid var(--line) !important;
 }
 
 .app-shell {
   height: 100dvh !important;
   max-height: 100dvh !important;
   overflow: hidden !important;
+  background: var(--bg-muted);
 }
+
+html[data-theme='dark'] .app-shell { background: var(--bg); }
 
 .app-shell .app-body {
   min-height: 0 !important;
   overflow: hidden !important;
+  padding: 0.6rem 0.6rem 0.6rem 0;
+}
+
+/* Sidebar rides the canvas: transparent, no border — the frame separates. */
+.sidebar {
+  background: transparent !important;
+  border-right: none !important;
+}
+
+/* Content frame: the white "window" the work happens in. */
+.content-frame {
+  background: var(--bg) !important;
+  border: 1px solid var(--line) !important;
+}
+
+html[data-theme='dark'] .content-frame {
+  background: var(--bg-subtle) !important;
+}
+
+.content-head {
+  border-bottom: 1px solid var(--line) !important;
 }
 
 .app-shell .content {
@@ -557,28 +575,49 @@ html[data-theme='dark'] .topbar {
   display: none;
 }
 
+/* Active row = lifted white pill on the gray canvas (dark: subtle raise). */
 .sidebar-link.active {
-  background: var(--bg-muted) !important;
-  color: var(--fg) !important;
-  box-shadow: inset 0 0 0 1px var(--line) !important;
-}
-
-.sidebar-link.active .sidebar-ico {
   background: var(--bg) !important;
-  border: 1px solid rgba(37, 137, 237, 0.35) !important;
-  color: var(--brand-deep) !important;
+  color: var(--fg) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 1px var(--line) !important;
 }
 
-.sidebar-link.active .sidebar-ico .icon { stroke: var(--brand-deep) !important; }
-
-.sidebar-link:hover {
+html[data-theme='dark'] .sidebar-link.active {
   background: var(--bg-muted) !important;
+  box-shadow: 0 0 0 1px var(--line) !important;
+}
+
+.sidebar-link.active .sidebar-ico { color: var(--brand-deep) !important; }
+.sidebar-link.active .sidebar-ico .icon { stroke: var(--brand-deep) !important; }
+html[data-theme='dark'] .sidebar-link.active .sidebar-ico { color: var(--accent) !important; }
+html[data-theme='dark'] .sidebar-link.active .sidebar-ico .icon { stroke: var(--accent) !important; }
+
+.sidebar-link:hover:not(.active) {
+  background: rgba(10, 10, 10, 0.045) !important;
   color: var(--heading) !important;
 }
 
-.sidebar-link:hover .sidebar-ico {
+html[data-theme='dark'] .sidebar-link:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.sidebar-kbd {
   background: var(--bg) !important;
   border-color: var(--line) !important;
+  color: var(--fg-muted) !important;
+}
+
+html[data-theme='dark'] .sidebar-kbd { background: var(--bg-muted) !important; }
+
+/* Workspace switcher card at the sidebar top. */
+.sidebar-workspace .view-switcher-btn:hover { background: rgba(10, 10, 10, 0.045) !important; }
+html[data-theme='dark'] .sidebar-workspace .view-switcher-btn:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+/* Mobile drawer needs a solid surface again. */
+@media (max-width: 820px) {
+  .sidebar { background: var(--bg) !important; border-right: 1px solid var(--line) !important; }
+  .app-shell .app-body { padding: 0; }
+  .content-frame { border: none !important; border-radius: 0 !important; }
 }
 
 /* Login — v3 "research signal field" (centered portal, no side panel) */
@@ -765,10 +804,7 @@ html[data-theme='dark'] .login-signal {
 .login-scene-title em {
   font-style: normal;
   white-space: nowrap;
-  background: var(--btn-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand-deep);
 }
 
 .login-wrap.login-v3 .login-scene-accent {
@@ -776,10 +812,7 @@ html[data-theme='dark'] .login-signal {
   display: inline-block;
   font-style: normal;
   white-space: nowrap;
-  background: var(--btn-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand-deep);
 }
 
 .login-wrap.login-v3 .login-scene-accent::after {
@@ -1378,18 +1411,16 @@ html[data-season] .section-badge::before {
 .icon { display: block; flex: none; }
 .brand-mark { border-radius: 6px; object-fit: contain; display: block; }
 
+/* Sidebar icons are flat glyphs — no boxed chip; the row is the unit. */
 .sidebar-ico {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
   flex: none;
-  color: var(--slate);
-  background: var(--surface-alt);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  color: var(--fg-muted);
+  background: transparent;
+  border: none;
+  transition: color 0.12s ease;
 }
 
 .feature-card .feature-icon {

@@ -19,19 +19,16 @@ export default function Archive() {
   const load = useCallback(() => api.publications().then(setPubs).catch(() => setPubs([])), []);
   useEffect(() => { load(); }, [load]);
 
-  const featured = useMemo(() => {
-    if (!pubs?.length) return null;
-    return [...pubs].sort((a, b) => (b.featured === true) - (a.featured === true) || new Date(b.publishedAt) - new Date(a.publishedAt))[0];
-  }, [pubs]);
-
+  // No promotional hero here — the archive's job is finding a paper, so it's
+  // one uniform, scannable list. Featured papers sort first and get a badge.
   const shown = useMemo(() => {
     const needle = q.toLowerCase();
     return (pubs || [])
       .filter((p) => (!cat || p.category === cat))
       .filter((p) => !needle || p.title.toLowerCase().includes(needle) || authorLine(p).toLowerCase().includes(needle) || (p.doi || '').toLowerCase().includes(needle) || (p.keywords || []).some((k) => k.toLowerCase().includes(needle)))
-      .filter((p) => !(featured && !q && !cat && p.id === featured.id)) // don't repeat the hero
       .sort((a, b) => (b.featured === true) - (a.featured === true) || new Date(b.publishedAt) - new Date(a.publishedAt));
-  }, [pubs, q, cat, featured]);
+  }, [pubs, q, cat]);
+  const filtering = Boolean(q || cat);
 
   return (
     <div className="jr-page">
@@ -50,29 +47,13 @@ export default function Archive() {
             <option value="">All subjects</option>
             {CATS.map((c) => <option key={c}>{c}</option>)}
           </select>
+          {pubs && filtering && (
+            <span className="muted" role="status">{shown.length} result{shown.length === 1 ? '' : 's'}</span>
+          )}
         </div>
 
         {!pubs ? <div className="page-loading">Loading…</div> : (
           <>
-            {featured && !q && !cat && (
-              <section className="jr-feature">
-                <div className="jr-feature-body">
-                  <div className="jr-eyebrow">
-                    <span className="jr-pill-feat"><Icon name="star" size={13} /> Featured</span>
-                    <span className="jr-type">{featured.articleType || 'Article'}</span>
-                    {featured.openAccess !== false && <span className="jr-oa">Open Access</span>}
-                  </div>
-                  <h2 className="jr-feature-title"><Link to={`/article/${featured.id}`}>{featured.title}</Link></h2>
-                  <p className="jr-feature-authors">{authorLine(featured)}</p>
-                  {featured.abstract && <p className="jr-feature-abstract">{featured.abstract}</p>}
-                  <div className="jr-feature-meta">
-                    <Link to={`/article/${featured.id}`} className="btn btn-primary">Read article</Link>
-                    <span className="muted">{featured.category} · {fmtDate(featured.publishedAt)}</span>
-                  </div>
-                </div>
-              </section>
-            )}
-
             {shown.length === 0 ? (
               <p className="muted">No papers match — try a different search.</p>
             ) : (

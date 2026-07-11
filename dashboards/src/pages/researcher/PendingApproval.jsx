@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api.js';
-import { useAuth } from '../../auth.jsx';
+import { useAuth, firstNameOf } from '../../auth.jsx';
 import Icon from '../../components/Icon.jsx';
 import { EXP_ANCHORS, LEAD_ANCHORS, anchorFor } from '../../onboardingScales.js';
 
@@ -65,7 +65,7 @@ export default function PendingApproval() {
           <span className="guide-ico guide-ico-lg" aria-hidden="true" style={{ marginBottom: '0.5rem' }}><Icon name="clock" size={22} /></span>
           <h1 style={{ marginBottom: '0.25rem' }}>Application under review</h1>
           <p className="sub">
-            Thanks, {user?.name?.split(' ')[0]} — a Moderator is reviewing your profile and assigning your
+            Thanks, {firstNameOf(user?.name)} — a Moderator is reviewing your profile and assigning your
             starting role (usually Associate Researcher). You'll get access automatically the moment it's done.
           </p>
 
@@ -160,7 +160,7 @@ function IntakeForm({ user, refreshUser, logout, onDone, rejected }) {
     <div className="login-wrap">
       <div className="login-card" style={{ maxWidth: 520, textAlign: 'left' }}>
         <h1 style={{ marginBottom: '0.25rem' }}>
-          {rejected ? 'Update your profile' : `One last step, ${user?.name?.split(' ')[0]}`}
+          {rejected ? 'Update your profile' : `One last step, ${firstNameOf(user?.name)}`}
         </h1>
         <p className="sub">
           {rejected
