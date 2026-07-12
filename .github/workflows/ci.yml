@@ -26,19 +26,16 @@ jobs:
       - name: Editorial workflow smoke test
         run: npm run test:workflow
 
-  dashboards:
-    name: Dashboards — build
+  app:
+    name: App — build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: dashboards
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: dashboards/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - name: Production build
         run: npm run build
