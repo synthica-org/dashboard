@@ -3,12 +3,12 @@ import { useAuth } from '../auth.jsx';
 import { getDefaultHomePath } from '../views.js';
 import { BrandMark } from './Icon.jsx';
 
-// Shared masthead + footer for the public Synthica Journal pages — a deliberately
-// academic chrome (serif wordmark, thin rules) distinct from the app dashboard.
+// Shared masthead + footer for the public Synthica Journal pages — the same
+// minimal framed-workspace chrome as the dashboard, minus the app sidebar.
 export function JournalMast({ preprint = false }) {
   const { user } = useAuth();
   return (
-    <header className={`jr-mast${preprint ? ' jr-mast-pre' : ''}`}>
+    <header className="jr-mast">
       <div className="jr-mast-inner">
         <Link to={preprint ? '/preprints' : '/journal'} className="jr-wordmark">
           <BrandMark size={26} /><span>Synthica <em>{preprint ? 'Preprints' : 'Journal'}</em></span>

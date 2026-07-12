@@ -134,7 +134,7 @@ function SubmitCTA() {
           {user
             ? <Link to="/researcher/journal" className="btn btn-primary">Submit to the Journal →</Link>
             : <Link to="/login" className="btn btn-primary">Join &amp; submit →</Link>}
-          <Link to="/preprints" className="btn btn-ghost jr-cta-ghost">Post a preprint</Link>
+          <Link to="/preprints" className="btn btn-ghost">Post a preprint</Link>
         </div>
       </div>
     </section>
@@ -181,7 +181,7 @@ function CompetitionsCard({ comps }) {
               <div className="jr-comp-title">{c.title}</div>
               <div className="jr-comp-meta">
                 {c.prize && <span className="jr-comp-prize"><Icon name="trophy" size={11} /> {c.prize}</span>}
-                {c.deadline && <span className={`jr-comp-deadline${dl <= 7 ? ' urgent' : ''}`}>{dl === 0 ? 'closes today' : `${dl}d left`} · {fmtShort(c.deadline)}</span>}
+                {c.deadline && <span className={dl <= 7 ? 'badge badge-red' : 'jr-comp-deadline'}>{dl === 0 ? 'closes today' : `${dl}d left`} · {fmtShort(c.deadline)}</span>}
               </div>
             </>
           );
