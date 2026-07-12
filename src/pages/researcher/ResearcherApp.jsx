@@ -74,23 +74,36 @@ export default function ResearcherApp() {
 
   const nav = [
     // ---- Member portal (every researcher) -------------------------------
+    // 10 visible links. Everything else stays registered below with
+    // `hidden: true` so ⌘K, direct URLs, and breadcrumbs keep working.
     { to: '/researcher', label: 'Home', icon: 'home', end: true, views: ['researcher'] },
-    { section: 'Community', views: ['researcher'] },
-    { to: '/researcher/community', label: 'Feed', icon: 'megaphone', views: ['researcher'] },
-    { to: '/researcher/messages', label: 'Messages', icon: 'message', views: ['researcher'] },
-    { to: '/researcher/people', label: 'People', icon: 'users', views: ['researcher'] },
-    { to: '/researcher/mentors', label: 'Mentors', icon: 'graduation-cap', views: ['researcher'] },
     { section: 'Research', views: ['researcher'] },
     { to: '/researcher/hub', label: 'Research Hub', icon: 'compass', views: ['researcher'] },
     { to: '/researcher/projects', label: 'My Projects', icon: 'folder', views: ['researcher'] },
     { to: '/researcher/groups', label: 'Groups', icon: 'flask', views: ['researcher'] },
     { to: '/researcher/journal', label: 'Submit a paper', icon: 'book-open', views: ['researcher'] },
     { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['researcher'] },
-    { to: '/researcher/drive', label: 'Drive', icon: 'folder-open', views: ['researcher'] },
-    { section: 'Discover', views: ['researcher'] },
+    { section: 'Community', views: ['researcher'] },
+    { to: '/researcher/community', label: 'Feed', icon: 'megaphone', views: ['researcher'] },
+    { to: '/researcher/messages', label: 'Messages', icon: 'message', views: ['researcher'] },
+    { to: '/researcher/people', label: 'People', icon: 'users', views: ['researcher'] },
+    { section: 'Grow', views: ['researcher'] },
     { to: '/researcher/apply', label: 'Apply for a role', icon: 'rocket', views: ['researcher'] },
-    { to: '/researcher/programs', label: 'Programs', icon: 'graduation-cap', views: ['researcher'] },
-    { to: '/researcher/competitions', label: 'Competitions', icon: 'party', views: ['researcher'] },
+
+    // ---- Demoted destinations (⌘K + in-page links only) ------------------
+    { to: '/researcher/mentors', label: 'Mentors', icon: 'graduation-cap', views: ['researcher'], hidden: true },
+    { to: '/researcher/drive', label: 'Drive', icon: 'folder-open', views: ['researcher'], hidden: true },
+    { to: '/researcher/programs', label: 'Programs', icon: 'graduation-cap', views: ['researcher'], hidden: true },
+    { to: '/researcher/competitions', label: 'Competitions', icon: 'party', views: ['researcher'], hidden: true },
+    { to: '/researcher/news', label: 'News', icon: 'megaphone', views: ['researcher'], hidden: true },
+    { to: '/researcher/explore', label: 'Explore', icon: 'sparkles', views: ['researcher'], hidden: true },
+    { to: '/researcher/opportunities', label: 'Opportunities', icon: 'briefcase', views: ['researcher'], hidden: true },
+    { to: '/researcher/tools', label: 'Tools', icon: 'grid', views: ['researcher'], hidden: true },
+
+    // Section boundary: stops the member "Grow" header from attaching to the
+    // persona home link in workspace views (filterNavForView drops headerless
+    // spacers, so the member view is unaffected).
+    { spacer: true, views: ['*'] },
 
     // ---- Lead workspace -------------------------------------------------
     ...(isLead ? [
@@ -101,6 +114,7 @@ export default function ResearcherApp() {
       { to: '/researcher/groups', label: 'Groups', icon: 'flask', views: ['lead'] },
       { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['lead'] },
     ] : []),
+    { spacer: true, views: ['*'] },
 
     // ---- Independent workspace ------------------------------------------
     ...(isIndependent ? [
@@ -111,6 +125,7 @@ export default function ResearcherApp() {
       { to: '/researcher/journal', label: 'Submit a paper', icon: 'book-open', views: ['independent'] },
       { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['independent'] },
     ] : []),
+    { spacer: true, views: ['*'] },
 
     // ---- Chapter workspace ----------------------------------------------
     ...(isChapter ? [
@@ -120,6 +135,7 @@ export default function ResearcherApp() {
       { to: '/researcher/people', label: 'People', icon: 'users', views: ['chapter'] },
       { to: '/researcher/calendar', label: 'Calendar', icon: 'calendar', views: ['chapter'] },
     ] : []),
+    { spacer: true, views: ['*'] },
 
     // ---- Mentor workspace -----------------------------------------------
     ...(isMentor ? [
@@ -133,8 +149,8 @@ export default function ResearcherApp() {
     // These leave the dashboard shell for the public site — labelled as such.
     { section: 'Public site', views: ['*'] },
     { to: '/journal', label: 'Synthica Journal', icon: 'books', views: ['*'], external: true },
-    { to: '/preprints', label: 'Preprints', icon: 'file-text', views: ['*'], external: true },
-    { to: '/archive', label: 'Archive', icon: 'archive', views: ['*'], external: true },
+    { to: '/preprints', label: 'Preprints', icon: 'file-text', views: ['*'], external: true, hidden: true },
+    { to: '/archive', label: 'Archive', icon: 'archive', views: ['*'], external: true, hidden: true },
     { spacer: true, views: ['*'] },
     { to: '/researcher/account', label: 'Account', icon: 'user', views: ['*'] },
   ];
