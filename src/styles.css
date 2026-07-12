@@ -1786,7 +1786,7 @@ html[data-theme='dark'] .dd-stat-gold { color: var(--gold); }
 .dash-hero-ico .icon { stroke: var(--brand-deep); }
 .dash-hero-text { min-width: 0; }
 .dash-hero-eyebrow {
-  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
+  font-size: 0.7rem; font-weight: 650; letter-spacing: 0.09em; text-transform: uppercase;
   color: var(--brand-deep, #1a6bb5); margin-bottom: 0.3rem;
 }
 .dash-hero-title {
@@ -1806,16 +1806,16 @@ html[data-theme='dark'] .dd-stat-gold { color: var(--gold); }
 /* ---------- RoleGuide ---------- */
 .dash-guide {
   border-radius: var(--dash-radius);
-  border: 1px solid rgba(120, 180, 251, 0.4);
-  background: linear-gradient(160deg, var(--accent-subtle, rgba(37, 137, 237, 0.12)), var(--card-bg, #fff) 70%);
+  border: 1px solid var(--line, var(--border));
+  background: var(--bg-subtle, var(--surface-alt));
   padding: clamp(1.1rem, 2.5vw, 1.4rem);
 }
 .dash-guide-head { display: flex; align-items: flex-start; gap: 0.7rem; margin-bottom: 0.9rem; }
 .dash-guide-spark {
   flex: none; width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center;
-  background: var(--dash-brand-grad); color: #fff;
+  background: var(--accent-subtle, rgba(37, 137, 237, 0.12)); color: var(--accent, var(--brand-deep));
 }
-.dash-guide-spark .icon { stroke: #fff; }
+.dash-guide-spark .icon { stroke: var(--accent, var(--brand-deep)); }
 .dash-guide-headings { flex: 1; min-width: 0; }
 .dash-guide-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--heading); }
 .dash-guide-intro { margin: 0.2rem 0 0; font-size: 0.86rem; color: var(--body); line-height: 1.5; }
@@ -1869,8 +1869,14 @@ html[data-theme='dark'] .dd-stat-gold { color: var(--gold); }
   background: var(--card-bg, #fff);
   border: 1px solid var(--border);
 }
-.dash-stat-hot { background: #fffcf3; border-color: #f3e3ae; }
-html[data-theme='dark'] .dash-stat-hot { background: #1c1808; border-color: #3d3313; }
+.dash-stat-hot {
+  background: color-mix(in srgb, var(--gold) 7%, var(--card-bg, #fff));
+  border-color: color-mix(in srgb, var(--gold) 35%, var(--border));
+}
+html[data-theme='dark'] .dash-stat-hot {
+  background: color-mix(in srgb, var(--gold) 9%, var(--bg-muted, #171717));
+  border-color: color-mix(in srgb, var(--gold) 25%, var(--border));
+}
 .dash-stat-link { cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
 .dash-stat-link:hover { border-color: var(--line-strong, #d4d4d4); box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06); }
 .dash-stat-link:active { transform: scale(0.99); }
@@ -1879,7 +1885,7 @@ html[data-theme='dark'] .dash-stat-hot { background: #1c1808; border-color: #3d3
 .dash-stat-ico { color: var(--body-alt); display: inline-flex; }
 .dash-stat-value {
   margin-top: auto; padding-top: 0.55rem;
-  font-size: clamp(1.9rem, 3vw, 2.35rem); font-weight: 650; line-height: 1;
+  font-size: clamp(1.9rem, 3vw, 2.35rem); font-weight: 550; line-height: 1;
   letter-spacing: -0.03em; color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
@@ -1926,13 +1932,13 @@ html[data-theme='dark'] .dash-stat-hot .dash-stat-value { color: var(--gold); }
   transform: translateY(-2px); border-color: rgba(120, 180, 251, 0.55);
   box-shadow: 0 8px 22px rgba(16, 24, 40, 0.1);
 }
-.dash-action-primary { border-color: rgba(120, 180, 251, 0.55); background: linear-gradient(160deg, var(--accent-subtle, rgba(37, 137, 237, 0.12)), var(--card-bg, #fff) 80%); }
+.dash-action-primary { border-color: rgba(120, 180, 251, 0.55); background: var(--accent-subtle, rgba(37, 137, 237, 0.12)); }
 .dash-action-disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
 .dash-action-ico {
   flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
-  background: var(--dash-brand-grad); color: #fff;
+  background: var(--accent-subtle, rgba(37, 137, 237, 0.12)); color: var(--accent, var(--brand-deep));
 }
-.dash-action-ico .icon { stroke: #fff; }
+.dash-action-ico .icon { stroke: var(--accent, var(--brand-deep)); }
 .dash-action-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .dash-action-label { font-size: 0.9rem; font-weight: 650; color: var(--heading); }
 .dash-action-desc { font-size: 0.77rem; color: var(--body-alt); margin-top: 0.1rem; line-height: 1.35; }
@@ -1999,21 +2005,19 @@ html[data-theme='dark'] .dash-table-row-link:hover { background: rgba(37, 137, 2
   .dash-stat-link:hover, .dash-action:hover, .dash-guide-item-link:hover { transform: none; }
 }
 /* ---------- Lead Researcher workspace (LeadHome) ---------- */
-.lead-hero { background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 60%); }
 .lead-hero-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
 .lead-hero-stats {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 0.75rem; margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid var(--border);
 }
 .lead-stat { text-align: center; }
-.lead-stat-n { font-size: 1.7rem; font-weight: 650; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.lead-stat-n { font-size: 1.7rem; font-weight: 550; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
 
 /* Q&A: custom-application questions + answers on a review card */
 .qa-block { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.55rem; border-left: 2px solid var(--border); padding-left: 0.75rem; }
 .qa-q { font-size: 0.78rem; font-weight: 700; color: var(--body-alt); }
 .qa-a { color: var(--heading); white-space: pre-wrap; }
 
-html[data-theme='dark'] .lead-hero { background: var(--card-bg, #161616); }
 html[data-theme='dark'] .lead-stat-n { color: var(--fg); }
 /* --- Expertise mentors (ROLE_WORKFLOWS §7) --------------------------------- */
 /* Calendly-style slot picker in the booking modal. */
@@ -2516,3 +2520,19 @@ html[data-theme='dark'] .sandbox-tab.on { color: #9cc4f8; }
 /* Dark mode mirrors the app shell: canvas drops to --bg, hairlines separate. */
 html[data-theme='dark'] .archive-page,
 html[data-theme='dark'] .pv-wrap { background: var(--bg); }
+
+/* === unit-7: researcher-ia === */
+/* Chapter join code: big, copyable, monospace so the 8 characters scan. */
+.join-code {
+  display: inline-block;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 2rem; font-weight: 650; letter-spacing: 0.3rem; line-height: 1.2;
+  padding: 0.5rem 1rem; border-radius: var(--radius-md, 12px);
+  background: var(--bg-subtle, var(--surface-alt));
+  border: 1px dashed var(--line-strong, #d4d4d4);
+  color: var(--fg, var(--ink));
+}
+.join-code-input {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  letter-spacing: 0.2rem; font-size: 1.1rem;
+}

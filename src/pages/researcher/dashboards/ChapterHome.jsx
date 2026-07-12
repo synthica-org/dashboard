@@ -90,15 +90,7 @@ function JoinCodeCard({ code, onRegenerated }) {
           <p className="muted" style={{ margin: '0.5rem 0 0.6rem', maxWidth: '40ch' }}>
             Share this 8-character code so students can join your chapter. Chapters are private — only people with the code can join.
           </p>
-          <div
-            aria-label="Chapter join code"
-            style={{
-              display: 'inline-block', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-              fontSize: '2rem', fontWeight: 800, letterSpacing: '0.3rem',
-              padding: '0.5rem 1rem', borderRadius: 12, background: 'var(--surface-2, #f1f5f3)',
-              border: '1px dashed var(--border, #cbd5d0)', color: 'var(--brand-deep, #0b3d2e)',
-            }}
-          >
+          <div aria-label="Chapter join code" className="join-code">
             {code}
           </div>
         </div>
@@ -260,7 +252,7 @@ function LeaderDashboard({ chapter, reload }) {
         <span className="row" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
           {chapter.location && <Badge tone="gray"><Icon name="map-pin" size={11} /> {chapter.location}</Badge>}
           {chapter.handbookUrl && (
-            <a className="btn btn-ghost btn-sm" href={chapter.handbookUrl} target="_blank" rel="noreferrer" style={{ background: 'rgba(255,255,255,0.16)', color: '#fff', borderColor: 'transparent' }}>
+            <a className="btn btn-sm hero-btn-ghost" href={chapter.handbookUrl} target="_blank" rel="noreferrer">
               Chapter handbook
             </a>
           )}
@@ -353,7 +345,7 @@ function JoinChapterPanel({ onJoined }) {
               placeholder="e.g. BAYAREA7"
               maxLength={8}
               autoCapitalize="characters"
-              style={{ fontFamily: 'ui-monospace, monospace', letterSpacing: '0.2rem', fontSize: '1.1rem' }}
+              className="join-code-input"
               required
             />
           </Field>
