@@ -1,20 +1,27 @@
 {
-  "name": "synthica-platform",
+  "name": "synthica-dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "Synthica platform monorepo — marketing site, journal backend, and editor/researcher dashboards.",
+  "description": "Synthica dashboards (React + Vite SPA at the repo root) + journal backend.",
+  "type": "module",
   "scripts": {
-    "install:all": "npm install && npm --prefix backend install && npm --prefix dashboards install",
+    "dev": "concurrently -n backend,app -c blue,magenta \"npm run dev:backend\" \"npm run dev:app\"",
     "dev:backend": "npm --prefix backend start",
-    "dev:dashboards": "npm --prefix dashboards run dev",
-    "dev:website": "serve website -l 8080",
-    "dev": "concurrently -n backend,dashboards,website -c blue,magenta,green \"npm run dev:backend\" \"npm run dev:dashboards\" \"npm run dev:website\"",
-    "build:dashboards": "npm --prefix dashboards run build",
+    "dev:app": "vite",
+    "build": "vite build && cp docs/index.html docs/404.html && touch docs/.nojekyll",
+    "preview": "vite preview",
+    "install:all": "npm install && npm --prefix backend install",
     "postinstall": "npm --prefix backend install",
     "start": "node backend/server.js"
   },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^9.0.1",
-    "serve": "^14.2.3"
+    "vite": "^5.4.8"
   }
 }

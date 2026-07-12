@@ -18,9 +18,11 @@ for high school students. This repo covers the four active development tracks.
 | 4. Researcher dashboard | Ankush Dutta, Michael Omijie | [`dashboards/`](dashboards/) (`/researcher`) + backend | React + Vite |
 
 ```
-website/      Static marketing site (Home, About, Journal, Editorial Board) — brand spec
+index.html    Vite entry for the dashboards SPA (source lives in src/)
+src/          React SPA: editor workflow dashboard + researcher dashboard, shared brand UI
 backend/      Express API: journal publications/DOI registry + data layer for both dashboards
-dashboards/   React SPA: editor workflow dashboard + researcher dashboard, shared brand UI
+docs/         Committed production build — GitHub Pages serves main → /docs
+shared/       Design system CSS + icon set shared by the app
 ```
 
 ## Quick start
@@ -28,8 +30,8 @@ dashboards/   React SPA: editor workflow dashboard + researcher dashboard, share
 Run everything with one command from the repo root:
 
 ```bash
-npm run install:all   # installs root + backend + dashboards deps (first time only)
-npm run dev           # backend :4000 · dashboards :5173 · website :8080
+npm run install:all   # installs root + backend deps (first time only)
+npm run dev           # backend :4000 · dashboards :5173
 ```
 
 Or start each piece on its own:
@@ -39,10 +41,7 @@ Or start each piece on its own:
 cd backend && npm install && npm start
 
 # 2. Dashboards (http://localhost:5173, proxies /api to the backend)
-cd dashboards && npm install && npm run dev
-
-# 3. Website — open any file in website/ directly, or serve statically:
-cd website && python3 -m http.server 8080
+npm install && npm run dev:app
 ```
 
 To deploy for shareable testing (Render + Vercel), see **[DEPLOY.md](DEPLOY.md)**.
@@ -124,5 +123,4 @@ login sheet.
 
 All UI follows the Synthica brand: Garet typeface, sky-blue gradient (`#2589ed → #99ccff`),
 brand blue `#78b4fb` for interactive elements, gold `#FFD700` for emphasis, glassmorphism
-surfaces, and rounded cards. Tokens live in `website/styles.css` (`:root`) and
-`dashboards/src/styles.css` (`:root`).
+surfaces, and rounded cards. Tokens live in `shared/design-system.css` (`:root`) and `src/styles.css` (`:root`).

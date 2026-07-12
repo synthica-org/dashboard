@@ -1,0 +1,1 @@
+const e=["http:","https:","mailto:"];function r(n){const t=String(n??"").trim();if(!t)return"";const s=/^[a-z][a-z0-9+.-]*:/i.test(t)?t:`https://${t}`;try{return e.includes(new URL(s).protocol)?s:""}catch{return""}}export{r as s};

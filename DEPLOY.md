@@ -4,9 +4,25 @@ Three deployable pieces:
 
 | Piece | Folder | What it is | Host |
 |-------|--------|------------|------|
-| Marketing site | `website/` | Static HTML/CSS/JS | Vercel / Netlify / GitHub Pages |
+
 | Backend API | `backend/` | Node + Express | Render / Railway / Fly.io |
-| Dashboards | `dashboards/` | React + Vite SPA | Vercel / Netlify |
+| Dashboards | repo root (`src/`, builds to `docs/`) | React + Vite SPA | GitHub Pages (main → /docs) |
+
+## GitHub Pages (dashboards)
+
+1. Build with the deployed backend URL baked in, then commit the output:
+
+   ```bash
+   VITE_API_BASE=https://<your-backend-host> npm run build
+   git add docs && git commit -m "Deploy dashboards"
+   git push
+   ```
+
+2. On GitHub: **Settings → Pages → Deploy from a branch → `main` / `docs`**.
+3. The app serves at `https://synthica-org.github.io/dashboard/` (the build's
+   `/dashboard/` base + SPA `404.html` fallback are handled by `npm run build`;
+   set `VITE_API_BASE` in the backend's `CORS_ORIGINS` too).
+   Custom domain? Build with `VITE_BASE=/`.
 
 The two frontends talk to the backend, so **deploy the backend first**, then point the frontends at its URL.
 
@@ -16,7 +32,7 @@ The two frontends talk to the backend, so **deploy the backend first**, then poi
 
 ```bash
 npm run install:all   # first time only
-npm run dev           # backend :4000 · dashboards :5173 · website :8080
+npm run dev           # backend :4000 · dashboards :5173
 npm --prefix backend run test:workflow   # exercises every pipeline path
 ```
 
@@ -37,13 +53,12 @@ Log in with the demo accounts in `README.md` (password `demo1234`).
 
 ### 2) Dashboards → Vercel
 
-- **New Project** → **Root Directory `dashboards`** (uses [`dashboards/vercel.json`](dashboards/vercel.json)).
+- **New Project** → root directory (uses [`vercel.json`](vercel.json), output `docs/`).
 - Env: `VITE_API_BASE` = backend URL (no trailing slash); `VITE_GOOGLE_CLIENT_ID` if using Google.
 - Redeploy after changing env vars (Vite inlines them at build time).
 
 ### 3) Marketing site → Vercel
 
-- **New Project** → **Root Directory `website`**, framework **Other** (no build step).
 - To pull live journal/profile data, add to the `<head>` of `journal-archive.html`, `article.html`, `profile.html` **before** `journal-data.js`:
   ```html
   <script>window.SYNTHICA_API_BASE = 'https://<backend>';</script>

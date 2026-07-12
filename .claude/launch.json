@@ -4,13 +4,20 @@
     {
       "name": "full stack",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 5173,
+      "autoPort": true
     },
     {
       "name": "dashboards only",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "dashboards", "run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev:app"
+      ],
       "port": 5173,
       "autoPort": true
     }

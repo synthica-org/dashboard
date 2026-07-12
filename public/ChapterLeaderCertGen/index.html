@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter Leader Certificate</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --navy: #0a1628; --navy-mid: #112240;
+    --gold: #c9a84c; --gold-light: #e8cc7a;
+    --white: #ffffff; --text: #e8edf5;
+    --muted: #7a8ba8; --border: rgba(201,168,76,0.25);
+    --radius: 16px;
+  }
+  
+  /* Resetting everything to strip layout modifiers entirely */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  body {
+    background: var(--navy) !important; 
+    color: var(--text) !important;
+    font-family: 'Lato', sans-serif !important; 
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px 80px;
+  }
+  
+  header { text-align:center; margin-bottom:44px; }
+  .logo-row { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:6px; }
+  
+  .logo-icon {
+    width:40px; height:40px; border-radius:10px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    display:flex; align-items:center; justify-content:center;
+    overflow: hidden;
+  }
+  .logo-icon img { width: 28px; height: 28px; object-fit: contain; }
+  
+  h1 {
+    font-family:'Cinzel', serif !important; 
+    font-size: 28px; font-weight:700;
+    color: var(--gold-light) !important; 
+    letter-spacing:0.04em;
+  }
+  
+  .subtitle { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
+  
+  .card {
+    background: var(--navy-mid) !important; 
+    border:1px solid var(--border);
+    border-radius: var(--radius); padding:32px 36px;
+    width:100%; max-width:520px; box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  
+  .field-label {
+    font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.1em; color:var(--muted); margin-bottom:8px;
+  }
+  
+  input[type=text] {
+    width:100%; padding:13px 16px;
+    background:rgba(10,22,40,0.7); border:1.5px solid rgba(201,168,76,0.25);
+    border-radius:10px; color:var(--white); font-size:16px; outline:none;
+    margin-bottom:20px;
+  }
+  
+  input[type=text]:focus { border-color:var(--gold); }
+  
+  .gen-btn {
+    width:100%; padding:15px;
+    background: linear-gradient(135deg,var(--gold),var(--gold-light));
+    color:var(--navy); border:none; border-radius:10px;
+    font-family:'Cinzel', serif; font-size:13px; font-weight:700;
+    letter-spacing:0.08em; cursor:pointer; opacity:0.4; pointer-events:none;
+  }
+  
+  .gen-btn.active { opacity:1; pointer-events:all; }
+  
+  #preview-section {
+    display:none; width:100%; max-width:900px; margin-top:32px;
+  }
+  
+  .preview-label {
+    font-family:'Cinzel', serif; font-size:12px; text-transform:uppercase;
+    letter-spacing:0.14em; color:var(--gold); margin-bottom:14px; text-align:center;
+  }
+  
+  #preview-canvas { 
+    width:100%; height:auto; 
+    border-radius:12px; 
+    box-shadow:0 20px 60px rgba(0,0,0,0.5); 
+    display:block; 
+  }
+  
+  .dl-btn {
+    display:block; width:100%; max-width:340px; margin:18px auto 0; padding:14px;
+    background:var(--navy-mid); border:1.5px solid var(--gold);
+    color:var(--gold); border-radius:10px; font-family:'Cinzel', serif;
+    font-size:12px; font-weight:700; text-align:center; text-decoration:none;
+  }
+  .dl-btn:hover { background:rgba(201,168,76,0.1); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-icon"><img src="/assets/logo/favicon.png" alt="" width="28" height="28"></div>
+    <h1>Chapter Leader Certificate</h1>
+  </div>
+  <p class="subtitle">Official Synthica Generation System</p>
+</header>
+
+<div class="card">
+  <div class="field-label">Recipient Name</div>
+  <input type="text" id="name-input" placeholder="Type name exactly as it should appear..." autocomplete="off">
+  <button class="gen-btn" id="generate-btn">Generate Certificate</button>
+</div>
+
+<div id="preview-section">
+  <p class="preview-label">Official Live Preview</p>
+  <canvas id="preview-canvas"></canvas>
+  <a href="#" class="dl-btn" id="download-btn" download="Certificate.png">Download PNG Certificate</a>
+</div>
+
+<script>
+  const input = document.getElementById('name-input');
+  const btn = document.getElementById('generate-btn');
+
+  input.addEventListener('input', () => {
+    btn.className = input.value.trim().length > 0 ? 'gen-btn active' : 'gen-btn';
+  });
+
+  btn.addEventListener('click', async () => {
+    const name = input.value.trim();
+    if (!name) return;
+
+    const tmpl = new Image();
+    tmpl.crossOrigin = "anonymous";
+    // Target the source image asset cleanly
+    tmpl.src = 'certificate-template.jpg'; 
+
+    await new Promise((resolve) => {
+      tmpl.onload = resolve;
+      tmpl.onerror = () => {
+        alert("Error loading certificate-template.jpg. Verify it is sitting directly alongside index.html in your main directory.");
+        resolve();
+      };
+    });
+
+    // FORCE high-priority font parsing before executing pixel array injections
+    await document.fonts.load('10px "Cinzel"');
+    await document.fonts.ready;
+
+    const canvas = document.getElementById('preview-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Adapt layout context matching your template asset pixel proportions
+    const W = tmpl.naturalWidth || 1920;
+    const H = tmpl.naturalHeight || 1080;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Render underlying layout image
+    ctx.drawImage(tmpl, 0, 0, W, H);
+
+    // PROPORTIONAL SCALE CALCULATION: Scales font seamlessly relative to base resolution width
+    // Modifying the '0.052' scalar allows fine adjustment of font scaling (0.052 * 1920px yields ~100px text size)
+    let baseFontSize = Math.floor(W * 0.052); 
+    ctx.font = `700 ${baseFontSize}px "Cinzel"`;
+    
+    // Auto-fit long name entries so text stays safely inside boundaries
+    const maxTextWidth = W * 0.75;
+    while (ctx.measureText(name).width > maxTextWidth && baseFontSize > 24) {
+      baseFontSize -= 4;
+      ctx.font = `700 ${baseFontSize}px "Cinzel"`;
+    }
+
+    // Precise Native Text Coordinates Center Alignment
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Vertical offset height alignment parameter 
+    // Adjust 0.52 fraction slightly up or down to center perfectly on the text line of your template
+    const targetY = H * 0.345; 
+
+    // Render crisp typographic details
+    ctx.fillStyle = '#c9a84c'; // Gold color matching design tokens
+    ctx.fillText(name, W / 2, targetY);
+
+    // Expose preview blocks to viewport cleanly
+    const preview = document.getElementById('preview-section');
+    preview.style.display = 'block';
+    preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Link download file element output path
+    document.getElementById('download-btn').href = canvas.toDataURL('image/png');
+  });
+</script>
+</body>
+</html>
