@@ -61,7 +61,7 @@ export default function Archive() {
                 {shown.map((p) => (
                   <article key={p.id || p.doi} className="jr-art">
                     <div className="jr-art-meta">
-                      {p.featured && <span className="jr-pill-feat" style={{ color: 'var(--gold-deep, #b45309)' }}><Icon name="star" size={11} /> Featured</span>}
+                      {p.featured && <span className="jr-pill-feat"><Icon name="star" size={11} /> Featured</span>}
                       <span className="jr-art-type">{p.articleType || 'Article'}</span>
                       {p.openAccess !== false && <span className="jr-oa sm">Open Access</span>}
                       <span className="muted">{fmtDate(p.publishedAt)}</span>

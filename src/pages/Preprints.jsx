@@ -57,9 +57,9 @@ export default function Preprints() {
               <article key={p.id} className="jr-art">
                 <div className="jr-art-meta">
                   <span className="jr-pre-id">{p.synId}</span>
-                  <span className="jr-art-type">Preprint</span>
+                  <span className="badge badge-gray">Preprint</span>
                   {p.version > 1 && <span className="jr-ver-badge">v{p.version}</span>}
-                  {p.linkedDoi && <span className="jr-oa sm" style={{ color: 'var(--brand-deep)' }}>Published</span>}
+                  {p.linkedDoi && <span className="badge badge-green">Published</span>}
                   <span className="muted">{fmtDate(p.postedAt)}</span>
                 </div>
                 <h3 className="jr-art-title"><Link to={`/preprints/${p.id}`}>{p.title}</Link></h3>

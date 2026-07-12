@@ -13,7 +13,7 @@ function DeadlinePill({ deadline }) {
   if (!deadline) return null;
   const dl = daysLeft(deadline);
   if (dl < 0) return <span className="jr-comp-deadline">closed · {fmtDay(deadline)}</span>;
-  return <span className={`jr-comp-deadline${dl <= 7 ? ' urgent' : ''}`}>{dl === 0 ? 'closes today' : `${dl} days left`} · {fmtDay(deadline)}</span>;
+  return <span className={dl <= 7 ? 'badge badge-red' : 'jr-comp-deadline'}>{dl === 0 ? 'closes today' : `${dl} days left`} · {fmtDay(deadline)}</span>;
 }
 
 // Public competitions board — visible without login; deeper actions (applying,
@@ -50,7 +50,7 @@ export default function CompetitionsPublic() {
                   <h2 className="jr-feature-title">{featured.title}</h2>
                   {featured.description && <p className="jr-feature-abstract">{featured.description}</p>}
                   <div className="row" style={{ gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                    {featured.prize && <span className="jr-comp-prize" style={{ color: '#6ee7b7' }}><Icon name="trophy" size={12} /> {featured.prize}</span>}
+                    {featured.prize && <span className="jr-comp-prize"><Icon name="trophy" size={12} /> {featured.prize}</span>}
                     <DeadlinePill deadline={featured.deadline} />
                   </div>
                   {safeHref(featured.url) && <a className="btn btn-primary" href={safeHref(featured.url)} target="_blank" rel="noreferrer">Learn more →</a>}
