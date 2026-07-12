@@ -5,7 +5,7 @@ import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import EditorDashboard, { QUEUE_COUNT_EVENT } from './EditorDashboard.jsx';
 import DirectorDashboard from './DirectorDashboard.jsx';
-import Admin from './Admin.jsx';
+import AdminLayout, { AdminOverview, AdminPeople, AdminContent, AdminSystem } from './Admin.jsx';
 import Email from './Email.jsx';
 import Tools from '../Tools.jsx';
 import Profile from '../Profile.jsx';
@@ -68,7 +68,15 @@ export default function EditorApp() {
       <Routes>
         <Route index element={hasQueue ? <EditorDashboard /> : <Navigate to={isDirector ? '/editor/director' : '/editor/admin'} replace />} />
         {isDirector && <Route path="director" element={<DirectorDashboard />} />}
-        {isAdmin && <Route path="admin" element={<Admin />} />}
+        {isAdmin && (
+          <Route path="admin" element={<AdminLayout />}>
+            <Route index element={<AdminOverview />} />
+            <Route path="people" element={<AdminPeople />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="system" element={<AdminSystem />} />
+            <Route path="*" element={<Navigate to="/editor/admin" replace />} />
+          </Route>
+        )}
         <Route path="email" element={<Email />} />
         <Route path="account" element={<Account />} />
         <Route path="profile" element={<Profile />} />
