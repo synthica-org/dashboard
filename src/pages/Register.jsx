@@ -4,6 +4,7 @@ import { useAuth } from '../auth.jsx';
 import { Button, Field } from '../components/ui.jsx';
 import Icon from '../components/Icon.jsx';
 import GoogleButton from '../components/GoogleButton.jsx';
+import AuthShell from '../components/AuthShell.jsx';
 
 // Public researcher self-registration. Email + Discord are required (point of
 // contact), matching the submission/registration policy.
@@ -47,32 +48,31 @@ export default function Register() {
   };
 
   return (
-    <div className="login-wrap login-v2">
-      <form className="login-card login-card-v2" onSubmit={onSubmit}>
-        <div className="login-brand"><img className="brand-img" src={`${import.meta.env.BASE_URL}assets/logo/logo.png`} alt="" />Synthica</div>
-        <h1>{fromJournal ? 'Submit to the Synthica Journal' : 'Join Synthica'}</h1>
-        <p className="sub">
-          {fromJournal
-            ? 'Submitting to Synthica Journal? Create your free researcher account — you’ll submit and track your paper from My Journal.'
-            : 'Create your free researcher account — join projects, a global community, programs, and competitions.'}
-        </p>
+    <AuthShell mode="register">
+      <h1>{fromJournal ? 'Submit to the Synthica Journal' : 'Join Synthica'}</h1>
+      <p className="sub">
+        {fromJournal
+          ? 'Submitting to Synthica Journal? Create your free researcher account — you’ll submit and track your paper from My Journal.'
+          : 'Create your free researcher account — join projects, a global community, programs, and competitions.'}
+      </p>
 
-        {fromJournal && (
-          <div className="login-hint" style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--brand-deep)' }}>
-            <Icon name="book-open" size={16} /> After you sign up, we&apos;ll take you straight to My Journal to submit your paper.
-          </div>
-        )}
-        {ref && (
-          <div className="login-hint" style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--brand-deep)' }}>
-            <Icon name="party" size={16} /> You were invited — your referrer gets the credit when you join.
-          </div>
-        )}
-        {error && <div className="login-error">{error}</div>}
+      {fromJournal && (
+        <div className="login-hint auth-callout">
+          <Icon name="book-open" size={16} /> After you sign up, we’ll take you straight to My Journal to submit your paper.
+        </div>
+      )}
+      {ref && (
+        <div className="login-hint auth-callout">
+          <Icon name="party" size={16} /> You were invited — your referrer gets the credit when you join.
+        </div>
+      )}
+      {error && <div className="login-error">{error}</div>}
 
-        <GoogleButton onSuccess={() => navigate(destination, { replace: true })} onError={setError} />
+      <GoogleButton onSuccess={() => navigate(destination, { replace: true })} onError={setError} />
 
-        <div className="login-divider"><span>or sign up with email</span></div>
+      <div className="login-divider"><span>or sign up with email</span></div>
 
+      <form onSubmit={onSubmit}>
         <Field label="Full name">
           <input value={form.name} onChange={set('name')} required />
         </Field>
@@ -93,11 +93,11 @@ export default function Register() {
         <Button type="submit" disabled={busy} style={{ width: '100%' }}>
           {busy ? 'Creating account…' : 'Create account'}
         </Button>
-
-        <div className="login-hint">
-          Already have an account? <Link to={`/login${authQuery}`}>Sign in</Link>
-        </div>
       </form>
-    </div>
+
+      <div className="login-hint auth-link-row">
+        Already have an account? <Link to={`/login${authQuery}`}>Sign in</Link>
+      </div>
+    </AuthShell>
   );
 }

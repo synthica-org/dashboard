@@ -98,7 +98,7 @@ export default function GoogleButton({ onSuccess, onError, text = 'continue_with
         window.google.accounts.id.renderButton(ref.current, {
           theme: dark ? 'filled_black' : 'outline',
           size: 'large',
-          shape: 'pill',
+          shape: 'rectangular', // matches the hairline card (Google brand colors stay — legit exception)
           text,
           logo_alignment: 'center',
           width: Math.max(200, Math.min(400, width)),

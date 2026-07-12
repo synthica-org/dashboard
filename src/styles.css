@@ -119,47 +119,47 @@ a {
   to { transform: rotate(360deg); }
 }
 
-/* ---------- Login ---------- */
+/* ---------- Login / standalone card pages (auth, verify-cert, pending) ---------- */
 .login-wrap {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #2589ed 0%, #4999e8 5%, #69aaec 35%, #99ccff 65%, #ffffff 100%);
+  background: var(--bg);
   padding: 2rem;
 }
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 61, 130, 0.2);
-  border-radius: 24px;
-  padding: 2.5rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
 }
 .login-card h1 {
   margin: 0 0 0.25rem;
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--ink);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fg);
 }
 .login-card p.sub {
   margin: 0 0 1.5rem;
-  color: var(--body);
+  color: var(--fg-muted);
 }
 .login-hint {
   margin-top: 1.25rem;
   font-size: 0.8rem;
-  color: var(--body-alt);
+  color: var(--fg-muted);
   line-height: 1.6;
 }
 .login-error {
-  background: #fef2f2;
+  background: var(--danger-bg);
   color: var(--danger);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--danger-border);
   padding: 0.6rem 0.8rem;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   margin-bottom: 1rem;
 }
@@ -1117,151 +1117,50 @@ html[data-theme='dark'] .view-switcher-item-ico { background: rgba(255, 255, 255
 .archive-topnav { display: flex; align-items: center; justify-content: space-between; }
 .archive-body { max-width: 860px; margin: 0 auto; padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 3rem; }
 
-/* ---------- Login v2 (portal sign-in) ---------- */
-/* Fills the viewport exactly — the page itself never scrolls; the card only
-   scrolls internally as a last resort on very short screens. */
-.login-v2 {
-  position: relative;
-  overflow: hidden;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  padding: 0;
-  background: linear-gradient(160deg, #0c2d54 0%, #1a6bb5 45%, #4999e8 80%, #99ccff 100%);
-}
-.aurora { position: absolute; inset: 0; pointer-events: none; filter: blur(60px); opacity: 0.55; }
-.aurora-blob { position: absolute; border-radius: 50%; will-change: transform; }
-.a1 { width: 480px; height: 480px; left: -120px; top: -120px; background: #78b4fb; animation: drift1 16s ease-in-out infinite alternate; }
-.a2 { width: 420px; height: 420px; right: -100px; top: 30%; background: #ffd700; opacity: 0.5; animation: drift2 20s ease-in-out infinite alternate; }
-.a3 { width: 520px; height: 520px; left: 25%; bottom: -200px; background: #2589ed; animation: drift3 18s ease-in-out infinite alternate; }
-@keyframes drift1 { to { transform: translate(80px, 60px) scale(1.15); } }
-@keyframes drift2 { to { transform: translate(-70px, -50px) scale(1.1); } }
-@keyframes drift3 { to { transform: translate(60px, -70px) scale(1.05); } }
-@media (prefers-reduced-motion: reduce) { .aurora-blob { animation: none; } }
+/* ---------- Auth shared pieces (brand row, divider, Google, demo chips) ----------
+   The v2 aurora/split layout is gone — every auth page renders through
+   AuthShell (.login-wrap.login-v3, see shared/design-system.css). */
 
-/* Two-column login: info panel (left) + sign-in card (right). */
-.login-split {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: clamp(1.5rem, 5vw, 4rem);
-  width: 100%;
-  max-width: 1040px;
-  max-height: 100dvh;
-  padding: clamp(0.75rem, 2vh, 1.75rem) 1.5rem;
-}
-.login-aside {
-  flex: 1 1 0;
-  min-width: 0;
-  color: #fff;
-  animation: card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.login-aside-badge {
-  display: inline-block;
-  background: rgba(255, 215, 0, 0.16);
-  border: 1px solid rgba(255, 215, 0, 0.45);
-  color: #ffe480;
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.8rem; border-radius: 999px;
-  margin-bottom: 1.1rem;
-}
-.login-aside-title {
-  font-size: clamp(1.9rem, 4vw, 2.9rem);
-  font-weight: 800; line-height: 1.05; margin: 0 0 0.9rem;
-  letter-spacing: -0.01em; color: #fff;
-}
-.login-aside-em { color: var(--gold); }
-.login-aside-sub {
-  font-size: 1rem; line-height: 1.6;
-  color: rgba(255, 255, 255, 0.82);
-  max-width: 440px; margin: 0 0 1.4rem;
-}
-.login-aside-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
-.login-aside-list li {
-  display: flex; align-items: center; gap: 0.85rem;
-  font-size: 0.98rem; font-weight: 500;
-  color: rgba(255, 255, 255, 0.94);
-}
-.login-aside-ico {
-  flex: none;
-  width: 40px; height: 40px; border-radius: 11px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-size: 1.15rem;
-}
-.login-card-v2 {
-  position: relative;
-  z-index: 1;
-  flex: 0 0 410px;
-  max-width: 410px;
-  width: 100%;
-  /* Tighter than the base card so every step fits the viewport without scroll. */
-  padding: 1.6rem 1.75rem;
-  max-height: calc(100dvh - 1.5rem);
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 20px 60px rgba(4, 30, 66, 0.35);
-  animation: card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-/* Compact the card's internals so the (tallest) sign-up step fits one screen. */
-.login-card-v2 h1 { font-size: 1.55rem; }
-.login-card-v2 p.sub { margin-bottom: 0.9rem; }
-.login-card-v2 .field { margin-bottom: 0.6rem; }
-.login-card-v2 .login-brand { margin-bottom: 0.6rem; }
-.login-card-v2 .login-divider { margin: 0.7rem 0; }
-.login-card-v2 .login-hint { margin-top: 0.7rem; }
-.login-card-v2 .login-foot { margin-top: 0.7rem; }
-.login-card-v2 .login-demo { margin-top: 0.7rem; }
-/* Single-column on narrow screens: hide the info panel, keep the clean card. */
-@media (max-width: 860px) {
-  .login-split { flex-direction: column; max-width: 420px; padding: 1.5rem; }
-  .login-aside { display: none; }
-  .login-card-v2 { flex: 1 1 auto; }
-}
-@keyframes card-in { from { opacity: 0; transform: translateY(14px) scale(0.985); } }
-@media (prefers-reduced-motion: reduce) { .login-card-v2 { animation: none; } }
+/* Card entrance — opacity + small rise only; reduced-motion opt-out lives
+   next to the v3 card rules in design-system.css. */
+@keyframes card-in { from { opacity: 0; transform: translateY(8px); } }
 
 .login-brand {
   display: inline-flex; align-items: center; gap: 0.5rem;
-  font-weight: 800; font-size: 1.05rem; color: var(--brand-deep);
-  letter-spacing: 0.02em; margin-bottom: 1rem;
-}
-.login-logo {
-  width: 20px; height: 20px; border-radius: 6px;
-  background: linear-gradient(135deg, var(--sky-deep), var(--gold));
-  box-shadow: 0 1px 4px rgba(37, 137, 237, 0.5);
+  font-weight: 700; font-size: 1rem; color: var(--fg);
+  letter-spacing: -0.01em; margin-bottom: 1rem;
 }
 
 .login-divider {
   display: flex; align-items: center; gap: 0.7rem;
-  margin: 1rem 0; color: var(--body-alt); font-size: 0.78rem;
+  margin: 1rem 0; color: var(--fg-muted); font-size: 0.78rem;
 }
 .login-divider::before, .login-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--border);
+  content: ''; flex: 1; height: 1px; background: var(--line);
 }
 
+/* Fallback "Continue with Google" button (only when GIS isn't configured);
+   the Google "G" keeps its brand colors — deliberate exception. */
 .google-btn {
   width: 100%;
   display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
-  font-family: var(--font); font-weight: 600; font-size: 0.92rem; color: var(--heading);
-  background: #fff; border: 1px solid var(--border); border-radius: 25px;
+  font-family: var(--font-sans); font-weight: 500; font-size: 0.9rem; color: var(--fg);
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md);
   padding: 0.6rem 1.2rem; cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: border-color 0.15s ease-out, background 0.15s ease-out, transform 0.15s ease-out;
 }
-.google-btn:hover { box-shadow: 0 4px 14px rgba(16, 24, 40, 0.12); transform: translateY(-1px); }
+.google-btn:hover { border-color: var(--line-strong); background: var(--bg-subtle); }
+.google-btn:active { transform: scale(0.97); }
 /* The GIS-rendered button stands on its own: full-width row, centered, no box. */
 .google-gsi { display: flex; justify-content: center; width: 100%; background: transparent; }
 .google-gsi > div, .google-gsi iframe { margin: 0 auto !important; }
 html[data-theme='dark'] .google-gsi { background: transparent; }
 html[data-theme='dark'] .google-gsi > div { background: transparent !important; }
 
+/* Demo quick-login — quiet hairline chips behind a disclosure. */
 .login-demo { margin-top: 1rem; }
 .login-demo summary {
-  cursor: pointer; font-size: 0.78rem; color: var(--body-alt);
+  cursor: pointer; font-size: 0.78rem; color: var(--fg-muted);
   text-align: center; list-style: none;
 }
 .login-demo summary::after { content: ' ▾'; }
@@ -1271,12 +1170,13 @@ html[data-theme='dark'] .google-gsi > div { background: transparent !important; 
   margin-top: 0.6rem;
 }
 .demo-btn {
-  font-family: var(--font); font-size: 0.78rem; font-weight: 600; color: var(--brand-deep);
-  background: rgba(255, 255, 255, 0.7); border: 1px solid var(--border);
-  border-radius: 999px; padding: 0.3rem 0.8rem; cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s;
+  font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; color: var(--fg-muted);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-full); padding: 0.3rem 0.8rem; cursor: pointer;
+  transition: border-color 0.15s ease-out, color 0.15s ease-out, transform 0.15s ease-out;
 }
-.demo-btn:hover:not(:disabled) { box-shadow: 0 3px 10px rgba(16, 24, 40, 0.12); transform: translateY(-1px); }
+.demo-btn:hover:not(:disabled) { border-color: var(--line-strong); color: var(--fg); }
+.demo-btn:active:not(:disabled) { transform: scale(0.97); }
 .demo-btn:disabled { opacity: 0.6; cursor: default; }
 
 .login-foot { margin-top: 1rem; text-align: center; font-size: 0.82rem; }
