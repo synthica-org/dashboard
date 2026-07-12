@@ -1299,15 +1299,8 @@ html[data-theme='dark'] .seg-btn.on {
   border-color: var(--danger-border) !important;
 }
 
-/* Archive / public pages */
-.archive-page {
-  background: var(--bg) !important;
-}
-
-.archive-hero {
-  background: var(--bg) !important;
-  border-bottom: 1px solid var(--line) !important;
-}
+/* Archive / public pages: the framed shell is defined in src/styles.css
+   (unit-5: public-shell) — no overrides needed here. */
 
 .profile-avatar {
   background: var(--bg-muted) !important;

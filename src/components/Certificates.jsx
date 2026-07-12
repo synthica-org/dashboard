@@ -127,7 +127,7 @@ export default function Certificates() {
             <img
               src={preview.url}
               alt={`${certLabel(preview.type)} certificate for ${preview.name}`}
-              style={{ width: '100%', maxWidth: 640, borderRadius: 12, boxShadow: '0 12px 32px rgba(4,30,66,0.18)', display: 'block' }}
+              style={{ width: '100%', maxWidth: 640, borderRadius: 'var(--radius-lg)', border: '1px solid var(--line)', boxShadow: 'var(--shadow-md)', display: 'block' }}
             />
             <div className="row" style={{ marginTop: '0.75rem', alignItems: 'center' }}>
               <a className="btn btn-primary btn-sm" href={preview.url} download={downloadName(preview.type, preview.name)}>Download PNG</a>
