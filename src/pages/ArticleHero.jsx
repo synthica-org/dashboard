@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api.js';
-import { Card, Badge, Pfp } from '../components/ui.jsx';
+import { Card, Pfp } from '../components/ui.jsx';
 import Icon from '../components/Icon.jsx';
 import { embedSrc, imageSrc } from '../files.js';
 import { useToast } from '../components/toast.jsx';
@@ -114,7 +114,7 @@ export default function ArticleHero() {
                 <div className="stack" style={{ gap: '0.6rem' }}>
                   {p.related.map((r) => (
                     <Link key={r.id} to={`/article/${r.id}`} className="art-related">
-                      <Badge tone="blue">{r.category}</Badge>
+                      <span className="art-micro">{r.category}</span>
                       <div className="art-related-title">{r.title}</div>
                       <div className="muted" style={{ fontSize: '0.74rem' }}>{fmtDate(r.publishedAt)}</div>
                     </Link>
@@ -139,10 +139,10 @@ function PreprintLink({ article, onChange }) {
 
   if (article.preprint) {
     return (
-      <div className="art-preprint-link">
+      <div className="art-group">
         <h4 className="art-h4" style={{ margin: '0 0 0.4rem' }}>Preprint</h4>
         <Link to={`/preprints/${article.preprint.id}`} className="art-related" style={{ display: 'block' }}>
-          <span className="jr-pre-id">{article.preprint.synId}</span>
+          <span className="art-id">{article.preprint.synId}</span>
           <div className="muted" style={{ fontSize: '0.78rem' }}>Earlier version{article.preprint.version > 1 ? ` (v${article.preprint.version})` : ''} → view preprint</div>
         </Link>
       </div>
@@ -156,7 +156,7 @@ function PreprintLink({ article, onChange }) {
   const matches = (list || []).filter((p) => !p.linkedDoi).filter((p) => !q.trim() || p.title.toLowerCase().includes(q.toLowerCase())).slice(0, 6);
 
   return (
-    <div className="art-preprint-link">
+    <div className="art-group">
       <div className="card-row" style={{ marginBottom: '0.4rem' }}>
         <h4 className="art-h4" style={{ margin: 0 }}>Preprint</h4>
         <button className="btn btn-ghost btn-sm" onClick={() => (editing ? setEditing(false) : open())}>{editing ? 'Done' : 'Link a preprint'}</button>
@@ -169,7 +169,7 @@ function PreprintLink({ article, onChange }) {
               {matches.length === 0 ? <p className="muted" style={{ fontSize: '0.8rem' }}>No unlinked preprints.</p> : matches.map((p) => (
                 <button key={p.id} type="button" className="art-tag-pick" onClick={() => link(p.id)}>
                   <span style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
-                    <span className="jr-pre-id">{p.synId}</span>
+                    <span className="art-id">{p.synId}</span>
                     <span style={{ display: 'block', fontSize: '0.82rem' }}>{p.title.slice(0, 60)}{p.title.length > 60 ? '…' : ''}</span>
                   </span>
                   <Icon name="link" size={14} />
@@ -185,19 +185,19 @@ function PreprintLink({ article, onChange }) {
 
 function Metadata({ p }) {
   return (
-    <>
+    <div className="art-group">
       <h4 className="art-h4">Metadata</h4>
-      <dl className="arx-dl">
+      <dl className="art-dl">
         <dt>Published</dt><dd>{fmtDate(p.publishedAt)}</dd>
         {p.acceptedAt && <><dt>Accepted</dt><dd>{fmtDate(p.acceptedAt)}</dd></>}
         <dt>Type</dt><dd>{p.articleType || 'Article'}</dd>
         <dt>Subject</dt><dd>{p.category}</dd>
-        <dt>DOI</dt><dd className="arx-break">{p.doi}</dd>
+        <dt>DOI</dt><dd className="art-break">{p.doi}</dd>
         {p.volume ? <><dt>Volume</dt><dd>{p.volume}{p.issue ? ` (${p.issue})` : ''}</dd></> : null}
         {p.pages ? <><dt>Pages</dt><dd>{p.pages}</dd></> : null}
         <dt>License</dt><dd>{p.license || 'CC BY 4.0'}</dd>
       </dl>
-    </>
+    </div>
   );
 }
 
@@ -207,14 +207,14 @@ function CiteBox({ p }) {
   const cites = useMemo(() => citations(p), [p]);
   const copy = () => navigator.clipboard?.writeText(cites[tab]).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
   return (
-    <>
-      <h4 className="art-h4" style={{ marginTop: '0.9rem' }}>Cite this article</h4>
+    <div className="art-group">
+      <h4 className="art-h4">Cite this article</h4>
       <div className="seg" style={{ marginBottom: '0.45rem' }}>
         {Object.keys(cites).map((k) => <button key={k} type="button" className={`seg-btn ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{k}</button>)}
       </div>
-      <pre className="arx-cite">{cites[tab]}</pre>
+      <pre className="art-cite">{cites[tab]}</pre>
       <button className="btn btn-ghost btn-sm" onClick={copy}>{copied ? <span className="icon-label"><Icon name="check" size={14} /> Copied</span> : 'Copy citation'}</button>
-    </>
+    </div>
   );
 }
 
@@ -245,7 +245,7 @@ function TagAccounts({ article, onChange }) {
   if (!tagged.length && !article.canTag) return null;
 
   return (
-    <div className="art-tags">
+    <div className="art-group">
       <div className="card-row" style={{ marginBottom: '0.4rem' }}>
         <h4 className="art-h4" style={{ margin: 0 }}>Tagged members</h4>
         {article.canTag && <button className="btn btn-ghost btn-sm" onClick={() => (editing ? setEditing(false) : openEditor())}>{editing ? 'Done' : 'Tag accounts'}</button>}
