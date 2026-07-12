@@ -545,7 +545,7 @@ html[data-theme='dark'] .seg-btn.active { background: var(--bg-muted); }
   color: var(--brand-deep);
 }
 .badge-gold {
-  background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+  background: var(--gold);
   color: #5a4a00;
 }
 .badge-green {
@@ -599,8 +599,7 @@ html[data-theme='dark'] .seg-btn.active { background: var(--bg-muted); }
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--sky-deep), var(--gold));
-  transition: width 0.4s ease;
+  background: var(--accent);
 }
 /* Remove-button for repeatable link rows. */
 .link-remove {
@@ -1621,7 +1620,6 @@ html[data-theme='dark'] .brand-mark { background: #fff; }
   --dash-radius: 16px;
   --dash-radius-sm: 12px;
   --dash-section-gap: 2rem;
-  --dash-brand-grad: linear-gradient(135deg, var(--sky-deep, #2589ed), var(--brand, #78b4fb));
 }
 
 /* ---------- New ui.jsx primitives: Spinner / Loading / Skeleton ---------- */
@@ -1724,8 +1722,7 @@ html[data-theme='dark'] .ui-error { background: rgba(220, 38, 38, 0.1); border-c
 .dd-stat-num { font-size: 1.35rem; font-weight: 800; line-height: 1; }
 .dd-stat-label { font-size: 0.82rem; color: var(--body-alt); }
 .dd-stat-blue { color: var(--brand-deep); }
-.dd-stat-gold { color: #b45309; }
-html[data-theme='dark'] .dd-stat-gold { color: var(--gold); }
+.dd-stat-gold { color: var(--gold-ink); }
 .dd-stat-green { color: var(--success); }
 .dd-stat-gray { color: var(--body-alt); }
 
