@@ -70,7 +70,6 @@ function FeaturedComp({ c }) {
   const href = safeHref(c.url);
   return (
     <div className="comp-hero pop-in">
-      <div className="comp-hero-glow" aria-hidden="true" />
       <div className="comp-hero-body">
         <span className="comp-hero-tag"><span className="icon-label"><Icon name="star" size={14} /> Featured opportunity</span></span>
         <h2 className="comp-hero-title">{c.title}</h2>

@@ -129,11 +129,10 @@ function Composer({ onPosted }) {
               <img src={imageSrc(imageUrl)} alt="" style={{ width: '100%', borderRadius: 12, maxHeight: 300, objectFit: 'cover' }} />
               <button
                 type="button"
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost btn-sm img-dismiss"
                 onClick={() => setImageUrl('')}
                 title="Remove image"
                 aria-label="Remove image"
-                style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.55)', color: '#fff', minWidth: 42, minHeight: 36 }}
               >
                 <Icon name="x" size={14} />
               </button>
