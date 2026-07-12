@@ -893,56 +893,6 @@ body:has(.login-wrap.login-v3) {
 .role-picker-body p { margin: 0; font-size: 0.78rem; color: var(--body-alt); line-height: 1.4; }
 .role-picker-skip { margin-top: 1rem; }
 
-.login-pathway {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
-  width: min(720px, 100%);
-  padding-top: 0.25rem;
-}
-
-.login-pathway::before {
-  content: '';
-  position: absolute;
-  top: 1.15rem;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--synthica-pale, #99ccff), var(--brand-deep), var(--synthica-pale, #99ccff));
-  opacity: 0.65;
-  z-index: 0;
-}
-
-.login-pathway-step {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 0 0.25rem;
-}
-
-.login-pathway-num {
-  width: 2.3rem;
-  height: 2.3rem;
-  margin: 0 auto 0.45rem;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--btn-gradient);
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(37, 137, 237, 0.3);
-}
-
-.login-pathway-num .icon { stroke: #fff; }
-
-.login-pathway-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--fg-muted);
-  line-height: 1.35;
-}
-
 .login-wrap,
 .login-v2 {
   background: var(--bg) !important;
@@ -1132,8 +1082,6 @@ html[data-season] .section-badge::before {
     background: var(--bg-muted) !important;
   }
 
-  .login-pathway { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-  .login-pathway::before { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
