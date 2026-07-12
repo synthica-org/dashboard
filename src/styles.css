@@ -1,28 +1,6 @@
-/* Synthica dashboards — brand-aligned styling.
-   Mirrors the marketing-site tokens: Garet, sky gradient, brand blue + gold,
-   glassmorphism, rounded cards. Kept lightweight (no UI framework). */
-
-:root {
-  --sky-deep: #2589ed;
-  --sky-mid: #4999e8;
-  --sky-light: #69aaec;
-  --sky-pale: #99ccff;
-  --brand: #78b4fb;
-  --brand-dark: #5c9eeb;
-  --brand-deep: #1a6bb5;
-  --gold: #ffd700;
-  --ink: #0f172a;
-  --heading: #1f2937;
-  --body: #6b7280;
-  --body-alt: #64748b;
-  --slate: #475569;
-  --border: #e2e8f0;
-  --surface-alt: #f5f8fc;
-  --surface: #f9fafb;
-  --danger: #ef4444;
-  --success: #16a34a;
-  --font: 'Garet', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+/* Synthica dashboards — app layout & page styles.
+   Design tokens and component bases (buttons, cards, form fields) are
+   canonical in shared/design-system.css. Kept lightweight (no UI framework). */
 
 * {
   box-sizing: border-box;
@@ -30,25 +8,11 @@
 
 body {
   margin: 0;
-  font-family: var(--font);
-  color: var(--heading);
-  background: #fcfdff; /* near-white app canvas (Notion-calm) */
   -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: var(--sky-deep);
   text-decoration: none;
-}
-
-:focus-visible {
-  outline: 2px solid var(--brand-deep);
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-
-.yellow-text {
-  color: var(--gold);
 }
 
 .page-loading {
@@ -84,19 +48,10 @@ a {
   align-items: center;
   gap: 1rem;
   padding: 1.75rem 2.25rem;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--border, #e2e8f0);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 12px 32px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(8px);
-}
-
-html[data-theme='dark'] .page-loader-card {
-  background: rgba(22, 32, 46, 0.92);
-  border-color: rgba(148, 163, 184, 0.2);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-md);
 }
 
 .page-loader-orbit {
@@ -409,7 +364,7 @@ html[data-theme='dark'] .page-loader-card {
 }
 .seg-btn:hover { color: var(--heading); }
 .seg-btn.active { background: #fff; color: var(--brand-deep); box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1); }
-html[data-theme='dark'] .seg-btn.active { background: #1b2735; }
+html[data-theme='dark'] .seg-btn.active { background: var(--bg-muted); }
 .content {
   flex: 1;
   min-height: 0;
@@ -451,7 +406,7 @@ html[data-theme='dark'] .seg-btn.active { background: #1b2735; }
   border-radius: 999px;
   padding: 0.2rem 0.8rem;
   font-size: 0.8rem;
-  color: #333;
+  color: var(--slate);
   margin-bottom: 0.5rem;
 }
 .section-title {
@@ -462,13 +417,10 @@ html[data-theme='dark'] .seg-btn.active { background: #1b2735; }
 }
 
 /* ---------- Cards & grids ---------- */
-/* Notion-friendly: clean white surfaces, subtle borders, soft low shadow —
-   calmer and more readable than heavy glass for a daily-use product. */
+/* .card surface/border/radius are canonical in design-system.css. Padding
+   stays HERE so later same-file modifiers (.dm-thread-card, .info-block…)
+   keep overriding it by source order. */
 .card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   padding: 1.4rem 1.5rem;
 }
 /* Role hero, framed-workspace edition: a quiet page header. The workspace
@@ -524,7 +476,7 @@ html[data-theme='dark'] .seg-btn.active { background: #1b2735; }
 .hero-card .hero-btn-ghost {
   background: transparent;
   color: var(--brand-deep);
-  /* base .btn forces border:none !important — draw the outline with a ring */
+  /* base .btn is borderless — draw the outline with an inset ring */
   box-shadow: inset 0 0 0 1px var(--border);
 }
 .hero-card .hero-btn-ghost:hover:not(:disabled) { background: var(--surface-alt); box-shadow: inset 0 0 0 1px var(--line-strong, #d4d4d4); }
@@ -593,7 +545,7 @@ html[data-theme='dark'] .seg-btn.active { background: #1b2735; }
   color: var(--brand-deep);
 }
 .badge-gold {
-  background: linear-gradient(90deg, #ffd700, #ffb800);
+  background: linear-gradient(90deg, var(--gold), var(--gold-deep));
   color: #5a4a00;
 }
 .badge-green {
@@ -610,68 +562,7 @@ html[data-theme='dark'] .seg-btn.active { background: #1b2735; }
   border: 1px solid var(--border);
 }
 
-/* ---------- Buttons ---------- */
-button.btn,
-a.btn {
-  font-family: var(--font) !important;
-  font-weight: 600 !important;
-  font-size: 0.9rem !important;
-  border: none !important;
-  border-radius: 25px !important;
-  padding: 0.55rem 1.2rem !important;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, opacity 0.15s;
-  display: inline-block;
-  text-decoration: none !important;
-}
-.btn:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
-}
-.btn-primary,
-button.btn-primary {
-  background: linear-gradient(90deg, #5c9eeb, #78b4fb) !important;
-  color: #fff !important;
-}
-.btn-primary:hover:not(:disabled) {
-  background: #5c9eeb !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(120, 180, 251, 0.4);
-}
-.btn-approve {
-  background: #16a34a !important;
-  color: #fff !important;
-}
-.btn-approve:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-}
-.btn-reject {
-  background: #ef4444 !important;
-  color: #fff !important;
-}
-.btn-reject:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-.btn-ghost,
-button.btn-ghost {
-  background: #ffffff !important;
-  color: #1a6bb5 !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-}
-.btn-ghost:hover:not(:disabled) {
-  background: #f5f8fc !important;
-  border-color: rgba(120, 180, 251, 0.55) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.10);
-}
-.btn-sm,
-button.btn-sm {
-  padding: 0.35rem 0.8rem !important;
-  font-size: 0.82rem !important;
-}
+/* ---------- Buttons: canonical in design-system.css ---------- */
 
 /* ---------- Forms ---------- */
 .field {
@@ -724,29 +615,7 @@ button.btn-sm {
   line-height: 1;
 }
 .link-remove:hover { border-color: var(--danger); color: var(--danger); }
-input,
-textarea,
-select {
-  width: 100%;
-  font-family: var(--font);
-  font-size: 0.92rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  color: var(--heading);
-}
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(120, 180, 251, 0.2);
-}
-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
+/* input/textarea/select base: canonical in design-system.css. */
 
 /* ---------- Modal ---------- */
 .modal-overlay {
@@ -779,7 +648,7 @@ textarea {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: #fff;
+  background: var(--bg);
 }
 .modal-header h3 {
   margin: 0;
@@ -822,7 +691,7 @@ textarea {
   color: var(--body-alt);
   border: 1px dashed var(--border);
   border-radius: 18px;
-  background: #fff;
+  background: var(--bg);
 }
 .divider {
   height: 1px;
@@ -971,9 +840,9 @@ textarea {
 
 /* ---------- Email verification banner ---------- */
 .verify-banner {
-  background: #fffbeb;
-  color: #92400e;
-  border-bottom: 1px solid #fde68a;
+  background: var(--warning-bg);
+  color: var(--warning-fg);
+  border-bottom: 1px solid var(--warning-border);
   padding: 0.6rem 1.5rem;
   font-size: 0.88rem;
   text-align: center;
@@ -1214,7 +1083,7 @@ html[data-theme='dark'] .view-switcher-item-ico { background: rgba(255, 255, 255
 .ob-next { margin-top: 0.5rem; min-width: 180px; }
 .ob-input { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border); border-radius: 12px; font-family: var(--font); font-size: 1rem; }
 .ob-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.25rem; }
-.ob-chip { padding: 0.5rem 0.9rem; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--heading); cursor: pointer; font-family: var(--font); font-size: 0.88rem; transition: all 0.15s; }
+.ob-chip { padding: 0.5rem 0.9rem; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); color: var(--heading); cursor: pointer; font-family: var(--font); font-size: 0.88rem; transition: all 0.15s; }
 .ob-chip.sel { background: rgba(120,180,251,0.18); border-color: var(--brand); color: var(--brand-deep); font-weight: 600; }
 .ob-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
 .ob-range { margin: 0.5rem 0 1.1rem; }
@@ -1607,84 +1476,13 @@ html[data-theme='dark'] .danger-zone { background: #2a1416; border-color: #7f1d1
 .pipeline-step.current .pipeline-label { color: var(--heading); font-weight: 600; }
 
 /* ============================================================
-   Dark mode — token swap + surface overrides
+   Dark mode — tokens remap in shared/design-system.css. Only overrides
+   whose light-mode base is a hard-coded literal remain here.
    ============================================================ */
-html[data-theme='dark'] {
-  --ink: #f1f5f9;
-  --heading: #e2e8f0;
-  --body: #94a3b8;
-  --body-alt: #8b9bb0;
-  --slate: #aab8cc;
-  --border: #283548;
-  --surface-alt: #16202e;
-  --surface: #121a26;
-  --card-bg: #161616;
-  color-scheme: dark;
-}
-html[data-theme='dark'] body {
-  background:
-    radial-gradient(700px 360px at 85% -120px, rgba(37, 137, 237, 0.18), transparent 70%),
-    radial-gradient(600px 320px at -80px -100px, rgba(255, 215, 0, 0.06), transparent 70%),
-    #0b1220;
-  color: var(--heading);
-}
-html[data-theme='dark'] .topbar-brand { color: var(--ink); }
-html[data-theme='dark'] .sidebar { background: transparent; }
-html[data-theme='dark'] .sidebar-link.active {
-  background: var(--surface-alt);
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-html[data-theme='dark'] .sidebar-link.active .sidebar-ico {
-  background: var(--bg-muted);
-  border-color: rgba(120, 180, 251, 0.4);
-}
-html[data-theme='dark'] .sidebar-link:hover .sidebar-ico {
-  background: var(--bg-muted);
-  border-color: var(--border);
-}
-html[data-theme='dark'] .card,
-html[data-theme='dark'] .login-card,
-html[data-theme='dark'] .ob-card {
-  background: var(--card-bg);
-  border-color: var(--border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.45);
-}
-html[data-theme='dark'] .card:hover { border-color: rgba(120, 180, 251, 0.4); }
-html[data-theme='dark'] input,
-html[data-theme='dark'] textarea,
-html[data-theme='dark'] select { background: #0e1622; color: var(--heading); border-color: var(--border); }
-html[data-theme='dark'] .btn-ghost,
-html[data-theme='dark'] a.btn-ghost { background: #16202e; color: #9cc4f8; border-color: var(--border); }
-html[data-theme='dark'] .btn-ghost:hover:not(:disabled) { background: #1c2940; }
-html[data-theme='dark'] .seg { background: #0e1622; }
-html[data-theme='dark'] .seg-btn.on { background: #22304a; color: #9cc4f8; }
-html[data-theme='dark'] .pfp-xs { border-color: #111a28; }
-html[data-theme='dark'] .badge-gray { background: #16202e; color: var(--slate); }
-html[data-theme='dark'] .badge-blue { background: rgba(120, 180, 251, 0.18); color: #9cc4f8; }
-html[data-theme='dark'] .info-block { background: #16202e; border-color: var(--border); }
-html[data-theme='dark'] .archive-page { background: #0b1220; }
-html[data-theme='dark'] .archive-hero { background: linear-gradient(180deg, rgba(37, 137, 237, 0.12), transparent); border-bottom-color: var(--border); }
-html[data-theme='dark'] .google-btn { background: #16202e; color: var(--heading); border-color: var(--border); }
+html[data-theme='dark'] .pfp-xs { border-color: var(--bg); }
+html[data-theme='dark'] .google-btn { background: var(--bg-subtle); }
 html[data-theme='dark'] .google-btn:hover { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
-html[data-theme='dark'] .paper-card h3, html[data-theme='dark'] .section-title { color: var(--heading); }
-html[data-theme='dark'] .section-badge { background: #16202e; color: var(--slate); border-color: var(--border); }
-html[data-theme='dark'] .page-title { color: var(--ink); }
-html[data-theme='dark'] .cal-item { background: #16202e; }
-html[data-theme='dark'] .pipeline-dot { background: #16202e; }
-html[data-theme='dark'] .pipeline-step.current .pipeline-dot { background: #0e1622; }
-html[data-theme='dark'] .seg-btn.on { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
-
-/* Dark mode: remaining chrome (menus, modals, palette, chips, empty states). */
-html[data-theme='dark'] .cmdk,
-html[data-theme='dark'] .modal,
-html[data-theme='dark'] .modal-header,
-html[data-theme='dark'] .bell-menu { background: #111a28; color: var(--heading); border-color: var(--border); }
-html[data-theme='dark'] .ob-chip { background: #16202e; color: var(--heading); }
-html[data-theme='dark'] .empty-state { background: #111a28; border-color: var(--border); }
-html[data-theme='dark'] .cal-nav { background: #16202e; color: var(--slate); }
-html[data-theme='dark'] .cal-nav:hover { background: #1c2940; color: var(--heading); }
-html[data-theme='dark'] .theme-toggle { border-color: var(--border); }
-html[data-theme='dark'] .theme-toggle:hover { background: #16202e; }
+html[data-theme='dark'] .pipeline-step.current .pipeline-dot { background: var(--bg-subtle); }
 html[data-theme='dark'] .listing-banner { opacity: 0.92; }
 
 /* ---------- Synthica Drive ---------- */
@@ -2298,7 +2096,7 @@ html[data-theme='dark'] .dash-table-row-link:hover { background: rgba(37, 137, 2
   .dash-stat-link:hover, .dash-action:hover, .dash-guide-item-link:hover { transform: none; }
 }
 /* ---------- Lead Researcher workspace (LeadHome) ---------- */
-.lead-hero { background: linear-gradient(135deg, var(--surface) 0%, #fff 60%); }
+.lead-hero { background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 60%); }
 .lead-hero-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
 .lead-hero-stats {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -2338,18 +2136,16 @@ html[data-theme='dark'] .slot-pick.sel { background: rgba(37, 137, 237, 0.16); }
    Additive: tightens the whole app without touching individual page styles.
    ============================================================================ */
 
-/* Consistent, visible keyboard-focus ring (was inconsistent across controls). */
+/* Keyboard-focus ring color/offset is canonical in design-system.css
+   (:focus-visible); here we only round the ring on interactive controls. */
 :where(a, button, input, select, textarea, [role='button'], [tabindex]):focus-visible {
-  outline: 2px solid var(--brand, #2589ed);
-  outline-offset: 2px;
   border-radius: 8px;
 }
 
-/* Buttons: tactile scale-down on press (the UI is listening). */
-.btn { transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .16s var(--ease-out-strong, cubic-bezier(0.23, 1, 0.32, 1)), border-color .15s ease; }
+/* Buttons: tactile scale-down on press (the UI is listening). The transition
+   lives in the design-system .btn base; this rule stays in this file so the
+   reduced-motion override at the end of the file still wins the cascade. */
 .btn:active:not(:disabled) { transform: scale(0.97); }
-.btn-primary { box-shadow: 0 2px 8px rgba(37, 137, 237, 0.22); }
-.btn-primary:hover:not(:disabled) { box-shadow: 0 6px 16px rgba(37, 137, 237, 0.32); }
 
 /* Comfortable touch targets + spacing on phones. */
 @media (max-width: 600px) {
