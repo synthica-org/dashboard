@@ -26,6 +26,7 @@ const GUIDE = [
   { icon: 'folder', label: 'See My Projects', desc: 'Everything you have joined, in one place.', to: '/researcher/projects' },
   { icon: 'megaphone', label: 'Join the community', desc: 'Feed, messages, and the people directory.', to: '/researcher/community' },
   { icon: 'calendar', label: 'Track your calendar', desc: 'Deadlines and events across your projects.', to: '/researcher/calendar' },
+  { icon: 'folder-open', label: 'Open Synthica Drive', desc: 'Every file across your projects, in one browser.', to: '/researcher/drive' },
 ];
 
 export default function AssociateHome() {

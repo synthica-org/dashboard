@@ -113,7 +113,7 @@ function GroupCard({ g }) {
     <Link to={`/researcher/groups/${g.id}`} className="card group-card" style={{ textDecoration: 'none', color: 'inherit' }}>
       {g.bannerUrl
         ? <img className="group-card-banner" src={imageSrc(g.bannerUrl)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-        : <div className="group-card-banner" style={{ background: 'linear-gradient(135deg, var(--brand), var(--brand-deep))' }} aria-hidden="true" />}
+        : <div className="group-card-banner banner-ph" aria-hidden="true" />}
       <div className="row" style={{ gap: '0.6rem', alignItems: 'center', marginBottom: '0.35rem' }}>
         {g.logoUrl && <img className="group-logo" src={imageSrc(g.logoUrl)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
         <h3 style={{ margin: 0 }}>{g.name}</h3>

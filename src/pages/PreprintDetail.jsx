@@ -31,7 +31,7 @@ export default function PreprintDetail() {
         <nav className="art-crumbs"><Link to="/preprints">Preprints</Link><span>›</span><span>{p.category}</span><span>›</span><span className="muted">{p.synId}</span></nav>
 
         {p.linkedDoi && (
-          <div className="jr-published-banner">
+          <div className="art-published-note">
             <Icon name="check-circle" size={16} /> This preprint has been peer-reviewed and published in the Synthica Journal.{' '}
             {p.linkedPubId
               ? <Link to={`/article/${p.linkedPubId}`}>Read the published version →</Link>
@@ -42,9 +42,9 @@ export default function PreprintDetail() {
         <div className="art-grid">
           <article className="art-main">
             <div className="art-eyebrow">
-              <span className="jr-pre-id">{p.synId}</span>
+              <span className="art-id">{p.synId}</span>
               <span className="art-type">Preprint</span>
-              <span className="jr-ver-badge">Version {p.versions?.[0]?.v || 1}</span>
+              <span className="art-ver">Version {p.versions?.[0]?.v || 1}</span>
               <span className="muted">Posted {fmtDate(p.postedAt)}</span>
             </div>
             <h1 className="art-title">{p.title}</h1>
@@ -53,7 +53,7 @@ export default function PreprintDetail() {
                 <span key={i}>{i > 0 && ', '}{a.account ? <Link to={`/p/${a.account.slug}`}>{a.name}</Link> : a.name}</span>
               ))}
             </div>
-            <div className="jr-pre-note muted">Not peer-reviewed · Posted by the authors · Citable via its Synthica ID</div>
+            <div className="art-prenote">Not peer-reviewed · Posted by the authors · Citable via its Synthica ID</div>
 
             {p.abstract && <p className="art-lede">{p.abstract}</p>}
 
@@ -68,18 +68,22 @@ export default function PreprintDetail() {
           <aside className="art-rail">
             <Card className="art-rail-card">
               <TagAccounts preprint={p} onChange={setP} />
-              <h4 className="art-h4">How to cite</h4>
-              <pre className="arx-cite">{(p.authors || []).map((a) => a.name).join(', ')} ({new Date(p.postedAt).getFullYear()}). {p.title}. Synthica Preprints, {p.synId}.</pre>
-              <h4 className="art-h4" style={{ marginTop: '0.9rem' }}>Versions</h4>
-              <div className="stack" style={{ gap: '0.5rem' }}>
-                {(p.versions || []).map((v) => (
-                  <div key={v.v} className="jr-ver-row">
-                    <div><strong>v{v.v}</strong> <span className="muted" style={{ fontSize: '0.76rem' }}>{fmtDate(v.postedAt)}</span>{v.note && <div className="muted" style={{ fontSize: '0.78rem' }}>{v.note}</div>}</div>
-                    {v.pdfUrl && <a className="btn btn-ghost btn-sm" href={v.pdfUrl} target="_blank" rel="noreferrer">PDF</a>}
-                  </div>
-                ))}
+              <div className="art-group">
+                <h4 className="art-h4">How to cite</h4>
+                <pre className="art-cite">{(p.authors || []).map((a) => a.name).join(', ')} ({new Date(p.postedAt).getFullYear()}). {p.title}. Synthica Preprints, {p.synId}.</pre>
               </div>
-              {p.canEdit && <NewVersion preprintId={p.id} onChange={setP} />}
+              <div className="art-group">
+                <h4 className="art-h4">Versions</h4>
+                <div className="stack" style={{ gap: '0.5rem' }}>
+                  {(p.versions || []).map((v) => (
+                    <div key={v.v} className="art-ver-row">
+                      <div><strong>v{v.v}</strong> <span className="muted" style={{ fontSize: '0.76rem' }}>{fmtDate(v.postedAt)}</span>{v.note && <div className="muted" style={{ fontSize: '0.78rem' }}>{v.note}</div>}</div>
+                      {v.pdfUrl && <a className="btn btn-ghost btn-sm" href={v.pdfUrl} target="_blank" rel="noreferrer">PDF</a>}
+                    </div>
+                  ))}
+                </div>
+                {p.canEdit && <NewVersion preprintId={p.id} onChange={setP} />}
+              </div>
             </Card>
 
             {p.related?.length > 0 && (
@@ -135,7 +139,7 @@ function TagAccounts({ preprint, onChange }) {
   const matches = (people || []).filter((u) => !taggedIds.has(u.id)).filter((u) => !q.trim() || (u.name || '').toLowerCase().includes(q.toLowerCase())).slice(0, 6);
   if (!tagged.length && !preprint.canTag) return null;
   return (
-    <div className="art-tags">
+    <div className="art-group">
       <div className="card-row" style={{ marginBottom: '0.4rem' }}>
         <h4 className="art-h4" style={{ margin: 0 }}>Tagged members</h4>
         {preprint.canTag && <button className="btn btn-ghost btn-sm" onClick={() => (editing ? setEditing(false) : openEditor())}>{editing ? 'Done' : 'Tag accounts'}</button>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Card, Badge, Button, Field, EmptyState } from '../../components/ui.jsx';
@@ -117,6 +117,9 @@ export default function ApplicationHub() {
 
   return (
     <div>
+      <p className="muted" style={{ margin: '0 0 0.5rem', fontSize: '0.82rem' }}>
+        Also in Grow: <Link to="/researcher/programs">Programs</Link> · <Link to="/researcher/competitions">Competitions</Link>
+      </p>
       <h1 className="page-title">Apply for a role</h1>
       <p className="page-sub">
         Explore advanced roles and apply. A Moderator reviews each application — once approved, your role

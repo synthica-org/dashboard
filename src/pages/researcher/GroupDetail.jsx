@@ -44,7 +44,7 @@ export default function GroupDetail() {
 
       {g.bannerUrl
         ? <img className="group-banner pop-in" src={imageSrc(g.bannerUrl)} alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-        : <div className="group-banner pop-in" style={{ background: 'linear-gradient(135deg, var(--brand), var(--brand-deep))', border: 'none' }} aria-hidden="true" />}
+        : <div className="group-banner pop-in banner-ph" aria-hidden="true" />}
 
       <div className="card-row" style={{ margin: '0.6rem 0 0.2rem', alignItems: 'center' }}>
         <div className="row" style={{ gap: '0.7rem', alignItems: 'center', minWidth: 0 }}>

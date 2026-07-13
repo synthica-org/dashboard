@@ -170,7 +170,7 @@ function Proposals({ proposals, onAdd, onRevise }) {
                 </div>
               </div>
               {p.status === 'rejected' && p.feedback && (
-                <div className="info-block" style={{ marginTop: '0.7rem', borderLeft: '3px solid var(--danger, #d33)' }}>
+                <div className="info-block" style={{ marginTop: '0.7rem' }}>
                   <strong>Moderator feedback:</strong> {p.feedback}
                 </div>
               )}

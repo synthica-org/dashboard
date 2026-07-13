@@ -47,7 +47,6 @@ export default function Mentors() {
   return (
     <div>
       <div className="comp-hero">
-        <span className="comp-hero-glow" />
         <div className="comp-hero-body">
           <span className="comp-hero-tag icon-label"><Icon name="graduation-cap" size={13} /> Expertise Mentors</span>
           <h1 className="comp-hero-title">Book a 1:1 with a subject-matter mentor</h1>

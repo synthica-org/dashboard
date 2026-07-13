@@ -42,7 +42,10 @@ export default function People() {
 
   return (
     <div>
-      <h1 className="page-title">People</h1>
+      <div className="card-row" style={{ alignItems: 'flex-start' }}>
+        <h1 className="page-title" style={{ margin: 0 }}>People</h1>
+        <Link className="btn btn-ghost btn-sm" to="/researcher/mentors" style={{ flex: 'none' }}>Find a mentor</Link>
+      </div>
       <p className="page-sub">Follow researchers and editors to get their updates — and message anyone directly.</p>
 
       <div className="seg" style={{ marginBottom: '1.25rem' }}>

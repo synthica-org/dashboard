@@ -76,7 +76,9 @@ export default function Layout({ children, nav = [] }) {
   );
 
   // ⌥1–⌥9 jump to the nth sidebar destination (matches the hint chips).
-  const linkItems = useMemo(() => filteredNav.filter((n) => n.to), [filteredNav]);
+  // `hidden` items are ⌘K-only: they stay in the nav array (palette + breadcrumb)
+  // but never render a row or consume a shortcut.
+  const linkItems = useMemo(() => filteredNav.filter((n) => n.to && !n.hidden), [filteredNav]);
   useEffect(() => {
     const onKey = (e) => {
       if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
@@ -117,7 +119,7 @@ export default function Layout({ children, nav = [] }) {
             <ViewSwitcher onLogout={onLogout} />
           </div>
           <div className="sidebar-nav">
-            {filteredNav.map((item, i) => (
+            {filteredNav.filter((item) => !item.hidden).map((item, i) => (
               item.spacer ? (
                 <div key={`sp-${i}`} className="sidebar-spacer" />
               ) : item.section ? (

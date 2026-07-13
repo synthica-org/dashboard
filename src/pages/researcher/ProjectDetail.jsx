@@ -3,8 +3,32 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Card, Badge, Button, Field, Pfp } from '../../components/ui.jsx';
+import Icon from '../../components/Icon.jsx';
 import { useToast } from '../../components/toast.jsx';
 import { Embed, embedSrc } from '../../components/embed.jsx';
+
+// Quiet "⋯" overflow for secondary per-row controls (remove/rename/settings-ish),
+// so each view keeps one visible primary action. Same <details> pattern as
+// SafetyMenu; reuses its popover styles for one consistent menu look.
+function OverflowMenu({ label = 'More options', align = 'right', children }) {
+  return (
+    <details className="safety-menu">
+      <summary className="safety-menu-trigger" title={label} aria-label={label}>
+        <Icon name="more-horizontal" size={16} />
+      </summary>
+      <div className={`safety-menu-pop ${align === 'left' ? 'left' : ''}`}>{children}</div>
+    </details>
+  );
+}
+
+function MenuItem({ onClick, disabled, children }) {
+  const click = (e) => {
+    const d = e.currentTarget.closest('details');
+    if (d) d.open = false;
+    onClick?.(e);
+  };
+  return <button type="button" disabled={disabled} onClick={click}>{children}</button>;
+}
 
 const today = () => new Date().toISOString().slice(0, 10);
 const isOverdue = (d, done) => d && !done && String(d).slice(0, 10) < today();
@@ -149,7 +173,7 @@ function Overview({ project, pct, done, total, onJump }) {
         <Card>
           <h3 style={{ marginTop: 0 }}>Chosen direction</h3>
           {chosen ? (
-            <div className="info-block" style={{ borderLeft: '3px solid var(--success)' }}>{chosen.text}</div>
+            <div className="info-block">{chosen.text}</div>
           ) : (
             <p className="muted" style={{ margin: 0 }}>The team hasn't picked a research direction yet.</p>
           )}
@@ -248,7 +272,7 @@ function TasksCard({ project, onChange }) {
       ) : (
         <div className="stack" style={{ marginTop: '0.6rem' }}>
           {ordered.map((t) => (
-            <div key={t.id} className="info-block" style={t.type === 'question' ? { borderLeft: '3px solid var(--brand)' } : undefined}>
+            <div key={t.id} className="info-block">
               <div className="card-row">
                 <div className="row" style={{ gap: '0.4rem' }}>
                   <Badge tone={t.type === 'question' ? 'blue' : 'gray'}>{t.type}</Badge>
@@ -428,7 +452,11 @@ function CalRow({ it, onRsvp, onRemove, past }) {
             </button>
           )}
           <Badge tone={overdue ? 'red' : CAL_TONE[it.kind] || 'gray'}>{overdue ? 'overdue' : it.kind}</Badge>
-          {it.canDelete && <button className="btn btn-ghost btn-sm" onClick={() => onRemove(it)}>Remove</button>}
+          {it.canDelete && (
+            <OverflowMenu label="Event options">
+              <MenuItem onClick={() => onRemove(it)}>Remove from calendar</MenuItem>
+            </OverflowMenu>
+          )}
         </div>
       </div>
     </div>
@@ -493,7 +521,7 @@ function IdeasCard({ project, onChange }) {
       <div className="stack">
         {ideas.length === 0 && <p className="muted">No ideas yet — add the first one.</p>}
         {ideas.map((i) => (
-          <div key={i.id} className="info-block" style={i.chosen ? { borderLeft: '3px solid var(--success)' } : undefined}>
+          <div key={i.id} className="info-block">
             <div className="card-row">
               <div>{i.text} {i.chosen && <Badge tone="green">chosen</Badge>}</div>
               <div className="row" style={{ gap: '0.3rem' }}>
@@ -554,9 +582,11 @@ function LinksCard({ project, onChange }) {
           <div key={l.id} className="info-block">
             <div className="card-row">
               <a href={l.url} target="_blank" rel="noreferrer">{l.label || l.url}</a>
-              <button className="btn btn-ghost btn-sm" onClick={() => remove(l.id)} disabled={deleting === l.id}>
-                {deleting === l.id ? '…' : 'Remove'}
-              </button>
+              <OverflowMenu label="Link options">
+                <MenuItem disabled={deleting === l.id} onClick={() => remove(l.id)}>
+                  {deleting === l.id ? 'Removing…' : 'Remove link'}
+                </MenuItem>
+              </OverflowMenu>
             </div>
             {embedSrc(l.url) && <Embed url={l.url} height={300} title={l.label || 'Embedded preview'} />}
           </div>
@@ -635,9 +665,13 @@ function RoleEditor({ projectId, member, onChange }) {
   };
   if (!editing) {
     return (
-      <button className="btn btn-ghost btn-sm" style={{ marginTop: '0.25rem' }} onClick={() => { setTitle(member.role || ''); setEditing(true); }}>
-        {member.role ? 'Edit role' : '+ Set role'}
-      </button>
+      <div style={{ marginTop: '0.15rem' }}>
+        <OverflowMenu label={`Options for ${member.name}`} align="left">
+          <MenuItem onClick={() => { setTitle(member.role || ''); setEditing(true); }}>
+            {member.role ? 'Edit role' : 'Set role'}
+          </MenuItem>
+        </OverflowMenu>
+      </div>
     );
   }
   return (
