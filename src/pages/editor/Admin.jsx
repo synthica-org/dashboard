@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../api.js';
 import { Card, Badge, Button, Field } from '../../components/ui.jsx';
 import { useToast } from '../../components/toast.jsx';
@@ -6,46 +7,105 @@ import { useAuth } from '../../auth.jsx';
 import NewsPoster from '../../components/NewsPoster.jsx';
 import Icon from '../../components/Icon.jsx';
 
-// Director-only control center: analytics, integrations (API keys/webhooks),
-// and application review (the "auditor" function).
-export default function Admin() {
+// Admin control center, split into four sub-routes (Overview / People /
+// Content / System). The section components below are unchanged — only the
+// top-level shell and routing moved from a 13-section scroll page to tabs.
+
+// The platform Admin account has full Director powers here.
+function useIsDirector() {
   const { user } = useAuth();
-  // The platform Admin account has full Director powers here.
-  const isDirector = user?.role === 'director' || user?.role === 'admin';
-  // [id, label, component] — drives both the anchor nav and the section wrappers.
-  const sections = [
-    ['analytics', 'Analytics', <AnalyticsCards />],
-    ['people', 'People', <People isDirector={isDirector} />],
-    ['applications', 'Applications', <Applications />],
-    ['programs', 'Programs', <ProgramsPanel isDirector={isDirector} />],
-    ['moderation', 'Moderation', <Moderation />],
-    ['competitions', 'Competitions', <CompetitionsAdmin />],
-    ['events', 'Events', <GlobalEvents />],
-    ['referrals', 'Referrals', <ReferralLeaderboard />],
-    ['archive', 'Published', <Archive />],
-    ['audit', 'Audit log', <AuditLog />],
-    ...(isDirector ? [['integrations', 'Integrations', <Integrations />], ['backup', 'Backup', <Backup />]] : []),
-    ['setup', 'Setup guide', <SetupGuide />],
-  ];
+  return user?.role === 'director' || user?.role === 'admin';
+}
+
+const TABS = [
+  { to: '/editor/admin', label: 'Overview', end: true },
+  { to: 'people', label: 'People' },
+  { to: 'content', label: 'Content' },
+  { to: 'system', label: 'System' },
+];
+
+// Legacy #adm-<section> deep links → the tab that now hosts that section.
+const HASH_TAB = {
+  analytics: '', people: 'people', applications: 'people', moderation: 'people',
+  referrals: 'people', programs: 'content', competitions: 'content',
+  events: 'content', archive: 'content', audit: 'system',
+  integrations: 'system', backup: 'system', setup: 'system',
+};
+
+export default function AdminLayout() {
+  const { hash } = useLocation();
+  const navigate = useNavigate();
+
+  // Hash-compat: old `/editor/admin#adm-people` links land on the right tab,
+  // then scroll to the section once it has rendered.
+  useEffect(() => {
+    const m = /^#adm-(\w+)$/.exec(hash);
+    if (!m || HASH_TAB[m[1]] === undefined) return undefined;
+    const tab = HASH_TAB[m[1]];
+    navigate({ pathname: `/editor/admin${tab ? `/${tab}` : ''}`, hash }, { replace: true });
+    const t = setTimeout(() => document.getElementById(`adm-${m[1]}`)?.scrollIntoView(), 80);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount only — tab clicks don't remount this layout
+
   return (
     <div>
       <h1 className="page-title">Admin</h1>
-      <p className="page-sub">Analytics, integrations, applications, audit log, and announcements.</p>
+      <p className="page-sub">Analytics, people, content, and system settings.</p>
       <nav className="admin-nav" aria-label="Admin sections">
-        {sections.map(([id, label]) => (
-          <button key={id} type="button" onClick={() => document.getElementById(`adm-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-            {label}
-          </button>
+        {TABS.map((t) => (
+          <NavLink key={t.label} to={t.to} end={t.end}>{t.label}</NavLink>
         ))}
       </nav>
       <EmailStatusBanner />
-      {isDirector && <NewsPoster />}
-      {sections.map(([id, , node]) => (
-        <section key={id} id={`adm-${id}`} className="admin-section">
-          {node}
-        </section>
-      ))}
+      <Outlet />
     </div>
+  );
+}
+
+export function AdminOverview() {
+  const isDirector = useIsDirector();
+  return (
+    <>
+      <section id="adm-analytics" className="admin-section"><AnalyticsCards /></section>
+      {isDirector && <NewsPoster />}
+    </>
+  );
+}
+
+export function AdminPeople() {
+  const isDirector = useIsDirector();
+  return (
+    <>
+      <section id="adm-people" className="admin-section"><People isDirector={isDirector} /></section>
+      <section id="adm-applications" className="admin-section"><Applications /></section>
+      <section id="adm-moderation" className="admin-section"><Moderation /></section>
+      <section id="adm-referrals" className="admin-section"><ReferralLeaderboard /></section>
+    </>
+  );
+}
+
+export function AdminContent() {
+  const isDirector = useIsDirector();
+  return (
+    <>
+      <section id="adm-programs" className="admin-section"><ProgramsPanel isDirector={isDirector} /></section>
+      <section id="adm-competitions" className="admin-section"><CompetitionsAdmin /></section>
+      <section id="adm-events" className="admin-section"><GlobalEvents /></section>
+      <section id="adm-archive" className="admin-section"><Archive /></section>
+    </>
+  );
+}
+
+export function AdminSystem() {
+  const isDirector = useIsDirector();
+  return (
+    <>
+      <section id="adm-audit" className="admin-section"><AuditLog /></section>
+      {isDirector && <section id="adm-integrations" className="admin-section"><Integrations /></section>}
+      {isDirector && <section id="adm-backup" className="admin-section"><Backup /></section>}
+      <section id="adm-setup" className="admin-section"><SetupGuide /></section>
+    </>
   );
 }
 

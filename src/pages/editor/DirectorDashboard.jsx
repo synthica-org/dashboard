@@ -641,7 +641,7 @@ function WorkloadCard() {
               {e.name} <span className="muted">{e.role}{e.category ? ` · ${e.category}` : ''}</span>
             </span>
             <span className="dd-load-bar">
-              <span className="dd-load-fill" style={{ width: `${(e.load / max) * 100}%`, background: e.load >= 3 ? 'var(--danger, #e5484d)' : 'var(--brand, #4f7cff)' }} />
+              <span className="dd-load-fill" style={{ width: `${(e.load / max) * 100}%`, background: e.load >= 3 ? 'var(--danger)' : 'var(--accent, var(--brand))' }} />
             </span>
             <span className="dd-load-num">{e.load}</span>
           </div>
