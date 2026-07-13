@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
-import Icon from '../components/Icon.jsx';
+import Icon, { BrandMark } from '../components/Icon.jsx';
+
+const TYPE_LABEL = {
+  associate: 'Associate Researcher',
+  independent: 'Independent Researcher',
+  lead: 'Lead Researcher',
+  chapter: 'Chapter Leader',
+};
 
 // Public certificate verification — no login required. A code can be typed in,
 // or passed via ?code=SYN-XXXX-XXXX so a certificate's "Verify" link resolves
@@ -41,69 +48,64 @@ export default function VerifyCertificate() {
     run(code);
   };
 
-  const TYPE_LABEL = {
-    associate: 'Associate Researcher',
-    independent: 'Independent Researcher',
-    lead: 'Lead Researcher',
-    chapter: 'Chapter Leader',
-  };
-
   return (
-    <div className="login-wrap">
-      <div className="login-card" style={{ maxWidth: 460 }}>
-        <Link to="/" className="topbar-brand" style={{ justifyContent: 'center', marginBottom: '0.75rem' }}>
-          <img className="brand-img" src={`${import.meta.env.BASE_URL}assets/logo/logo.png`} alt="" />Synthica
-        </Link>
-        <h1>Verify a <span className="yellow-text">certificate</span></h1>
-        <p className="sub">Confirm a Synthica certificate is genuine by its verification code.</p>
+    <div className="pv-wrap">
+      <div className="pv-head">
+        <Link to="/" className="topbar-brand"><BrandMark size={24} />Synthica</Link>
+        <div>
+          <h1 className="pv-title">Verify a certificate</h1>
+          <p className="pv-sub">Confirm a Synthica certificate is genuine by its verification code.</p>
+        </div>
+      </div>
 
-        <form onSubmit={submit} style={{ marginTop: '1rem' }}>
+      <div className="pv-card">
+        <form onSubmit={submit}>
+          <label className="pp-label" htmlFor="pv-code" style={{ display: 'block' }}>Verification code</label>
           <input
+            id="pv-code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="SYN-XXXX-XXXX"
-            aria-label="Certificate verification code"
+            style={{ width: '100%' }}
             autoFocus
           />
-          <button className="btn btn-primary" type="submit" disabled={busy || !code.trim()} style={{ width: '100%', marginTop: '0.6rem' }}>
+          <button className="btn btn-primary" type="submit" disabled={busy || !code.trim()} style={{ width: '100%', marginTop: '0.75rem' }}>
             {busy ? 'Checking…' : 'Verify certificate'}
           </button>
         </form>
 
         {result && (
-          <div className="info-block" style={{ marginTop: '1rem', textAlign: 'left' }}>
+          <div className="pv-result" role="status">
             {result.valid ? (
               <>
-                <span className="guide-ico guide-ico-success" aria-hidden="true" style={{ marginBottom: '0.35rem' }}>
-                  <Icon name="check-circle" size={19} />
+                <span className="guide-ico guide-ico-success" aria-hidden="true">
+                  <Icon name="check-circle" size={17} />
                 </span>
-                <strong style={{ display: 'block', fontSize: '1.05rem' }}>Genuine certificate</strong>
-                <p style={{ margin: '0.4rem 0 0' }}>
-                  Issued to <strong>{result.name}</strong>
-                </p>
-                <p className="muted" style={{ margin: '0.15rem 0 0' }}>
-                  {TYPE_LABEL[result.type] || result.type}
-                  {result.issuedAt && <> · {new Date(result.issuedAt).toLocaleDateString()}</>}
-                </p>
+                <div>
+                  <strong>Genuine certificate</strong>
+                  <p>Issued to <strong>{result.name}</strong></p>
+                  <p>
+                    {TYPE_LABEL[result.type] || result.type}
+                    {result.issuedAt && <> · {new Date(result.issuedAt).toLocaleDateString()}</>}
+                  </p>
+                </div>
               </>
             ) : (
               <>
-                <span className="guide-ico guide-ico-danger" aria-hidden="true" style={{ marginBottom: '0.35rem' }}>
-                  <Icon name="alert" size={19} />
+                <span className="guide-ico guide-ico-danger" aria-hidden="true">
+                  <Icon name="alert" size={17} />
                 </span>
-                <strong style={{ display: 'block', fontSize: '1.05rem' }}>No match found</strong>
-                <p className="muted" style={{ margin: '0.4rem 0 0' }}>
-                  We couldn’t find a certificate with that code. Double-check it and try again.
-                </p>
+                <div>
+                  <strong>No match found</strong>
+                  <p>We couldn’t find a certificate with that code. Double-check it and try again.</p>
+                </div>
               </>
             )}
           </div>
         )}
-
-        <p className="home-link" style={{ marginTop: '1.25rem' }}>
-          <Link to="/">← Back to Synthica</Link>
-        </p>
       </div>
+
+      <p className="pv-foot"><Link to="/">← Back to Synthica</Link></p>
     </div>
   );
 }

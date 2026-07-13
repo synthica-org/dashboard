@@ -33,11 +33,12 @@ export default function PublicProfile() {
 
   if (missing) {
     return (
-      <div className="login-wrap">
-        <div className="login-card">
-          <h1>Profile not found</h1>
-          <p className="sub">This member may have set their profile to private.</p>
-          <Link className="btn btn-primary" to="/archive">Browse the archive</Link>
+      <div className="pv-wrap">
+        <Link to="/" className="topbar-brand"><BrandMark size={22} />Synthica</Link>
+        <div className="pv-card pv-center">
+          <h1 className="pv-title">Profile not found</h1>
+          <p className="pv-sub">This member may have set their profile to private.</p>
+          <Link className="btn btn-primary" to="/archive" style={{ marginTop: '1rem' }}>Browse the archive</Link>
         </div>
       </div>
     );
@@ -46,7 +47,7 @@ export default function PublicProfile() {
 
   return (
     <div className="archive-page">
-      <nav className="archive-topnav" style={{ padding: '1rem clamp(1rem,4vw,2.5rem)' }}>
+      <nav className="archive-topnav">
         <Link to="/" className="topbar-brand"><BrandMark size={22} />Synthica</Link>
         <span className="row" style={{ gap: '0.8rem' }}>
           {user && user.id !== p.id && <Link className="btn btn-primary btn-sm" to={`/researcher/messages/${p.id}`}><span className="icon-label"><Icon name="message" size={16} /> Message</span></Link>}
@@ -55,8 +56,8 @@ export default function PublicProfile() {
         </span>
       </nav>
 
-      <main className="archive-body" style={{ paddingTop: '0.5rem' }}>
-        <Card style={{ marginBottom: '1rem' }}>
+      <main className="archive-body">
+        <Card>
           <div className="row" style={{ gap: '1rem', alignItems: 'center' }}>
             <Pfp name={p.name} url={imageSrc(p.avatarUrl)} size="lg" />
             <div>
@@ -101,15 +102,15 @@ export default function PublicProfile() {
         </Card>
 
         {p.bio && (
-          <Card style={{ marginBottom: '1rem' }}>
-            <h3 style={{ marginTop: 0 }}>About</h3>
+          <Card>
+            <h2 className="pp-label">About</h2>
             <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{p.bio}</p>
           </Card>
         )}
 
         {(p.groups || []).length > 0 && (
-          <Card style={{ marginBottom: '1rem' }}>
-            <h3 style={{ marginTop: 0 }}>Research groups</h3>
+          <Card>
+            <h2 className="pp-label">Research groups</h2>
             <div className="row" style={{ gap: '0.4rem' }}>
               {p.groups.map((g) => <Badge key={g.id} tone="blue">{g.name}</Badge>)}
             </div>
@@ -117,8 +118,8 @@ export default function PublicProfile() {
         )}
 
         {(p.currentProjects || []).length > 0 && (
-          <Card style={{ marginBottom: '1rem' }}>
-            <h3 style={{ marginTop: 0 }}>Current projects</h3>
+          <Card>
+            <h2 className="pp-label">Current projects</h2>
             <div className="stack">
               {p.currentProjects.map((pr) => (
                 <div key={pr.id} className="muted">
@@ -131,13 +132,13 @@ export default function PublicProfile() {
         )}
 
         <Card>
-          <h3 style={{ marginTop: 0 }}>Published research <Badge tone="gray">{(p.publications || []).length}</Badge></h3>
+          <h2 className="pp-label">Published research <Badge tone="gray">{(p.publications || []).length}</Badge></h2>
           {(p.publications || []).length === 0 ? (
             <p className="muted" style={{ margin: 0 }}>No published research yet.</p>
           ) : (
-            <div className="stack">
+            <div>
               {p.publications.map((pub) => (
-                <div key={pub.doi}>
+                <div key={pub.doi} className="pp-pub">
                   {pub.pdfUrl ? <a href={pub.pdfUrl} target="_blank" rel="noreferrer"><strong>{pub.title}</strong></a> : <strong>{pub.title}</strong>}
                   {pub.verified === false && <> <Badge tone="gold">awaiting verification</Badge></>}
                   <div className="muted" style={{ fontSize: '0.8rem' }}>
